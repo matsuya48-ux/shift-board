@@ -721,7 +721,7 @@ function WarehouseMonthGrid({
                   >
                     <th
                       scope="row"
-                      className="sticky left-0 z-10 w-20 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] px-1 py-1 text-center text-[12px] font-medium text-[color:var(--ink)]"
+                      className="sticky left-0 z-10 w-20 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] px-1 py-1.5 text-center text-[12px] font-medium text-[color:var(--ink)]"
                     >
                       {s.display_name.split(/\s+/)[0]}
                     </th>
@@ -740,7 +740,7 @@ function WarehouseMonthGrid({
                       return (
                         <td
                           key={dateStr}
-                          className={`w-10 border-r border-[color:var(--line)] px-0.5 py-0.5 text-center ${
+                          className={`w-10 border-r border-[color:var(--line)] px-0.5 py-1 text-center ${
                             isToday
                               ? "bg-[color:var(--accent-soft)]"
                               : isOff
@@ -749,7 +749,7 @@ function WarehouseMonthGrid({
                           }`}
                         >
                           {eff ? (
-                            <div className="mx-auto w-full leading-[1.15]">
+                            <div className="mx-auto w-full leading-tight">
                               <div
                                 className="rounded px-0.5 text-[9px] font-medium text-white tabular-nums"
                                 style={{ background: pattern?.color ?? "#6b7280" }}
@@ -768,13 +768,13 @@ function WarehouseMonthGrid({
                     })}
                     {isAdmin && (
                       <>
-                        <td className="w-12 px-1 py-0.5 text-right text-[12px] font-semibold tabular-nums text-[color:var(--ink)]">
+                        <td className="w-12 px-1 py-1 text-right text-[12px] font-semibold tabular-nums text-[color:var(--ink)]">
                           {staffDays.get(s.id) ?? 0}
                           <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
                             日
                           </span>
                         </td>
-                        <td className="w-14 px-2 py-0.5 text-right text-[12px] font-semibold tabular-nums text-[color:var(--ink)]">
+                        <td className="w-14 px-2 py-1 text-right text-[12px] font-semibold tabular-nums text-[color:var(--ink)]">
                           {fmtHours(total)}
                           <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
                             h
