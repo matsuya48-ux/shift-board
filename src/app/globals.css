@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  /* 温かいオフホワイト + ディープフォレスト */
+  --bg: #f7f4ee;              /* 温かみのあるオフホワイト */
+  --surface: #ffffff;
+  --surface-soft: #fbfaf5;
+
+  --ink: #1a1713;              /* 深い墨 */
+  --ink-2: #4b4540;            /* セカンダリ */
+  --ink-3: #807970;            /* キャプション */
+  --ink-4: #b8b0a4;            /* 弱 */
+
+  --line: #ece7dc;
+  --line-soft: #f3efe6;
+  --line-strong: #c9c0ad;         /* グリッドをはっきり見せる用 */
+  --off-day: #e6e0d0;             /* 土日・祝日の背景 */
+  --off-day-strong: #ddd5c0;
+
+  --accent: #2d5545;           /* ディープフォレスト */
+  --accent-hover: #1f3e31;
+  --accent-soft: #e6ede9;
+  --accent-text: #ffffff;
+
+  --success: #4b7a59;
+  --warning: #a67234;
+  --danger: #9a3e3a;
+
+  /* シャドウ */
+  --shadow-sm: 0 1px 2px rgba(26, 23, 19, 0.04);
+  --shadow-md: 0 4px 16px -4px rgba(26, 23, 19, 0.08);
+  --shadow-lg: 0 10px 40px -10px rgba(26, 23, 19, 0.15);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-line-strong: var(--line-strong);
+  --color-off-day: var(--off-day);
+  --color-off-day-strong: var(--off-day-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+
+  --font-sans: var(--font-inter), var(--font-noto-jp), "Hiragino Kaku Gothic ProN",
+    "ヒラギノ角ゴ ProN W3", Meiryo, sans-serif;
+}
+
+html, body {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "palt";
+  letter-spacing: 0.005em;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+/* 大きな見出しは詰め気味（display text） */
+h1, h2, h3 {
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+
+/* 本文・キャプション類はゆったり */
+p, label, span, a {
+  line-height: inherit;
+}
+
+
+/* アプリっぽい安全余白 */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 0.75rem);
+}
+
+/* アニメーション */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise { animation: rise 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in { animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* 等幅数字 */
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* アプリ風スクロール */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* 日付ピッカー */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.4;
+  cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 0.8; }
+
+/* タップハイライト無効化 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
