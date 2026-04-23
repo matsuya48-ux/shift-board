@@ -25,7 +25,6 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   return (
     <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--line)] bg-[color:var(--surface)]/90 backdrop-blur-lg">
       <div
-        className="pt-1"
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
@@ -35,6 +34,8 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
           marginRight: "auto",
           paddingLeft: "0.25rem",
           paddingRight: "0.25rem",
+          paddingTop: "0.35rem",
+          paddingBottom: "0.35rem",
           boxSizing: "border-box",
         }}
       >
@@ -47,25 +48,20 @@ export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
             <Link
               key={href}
               href={href}
-              className="flex min-w-0 flex-col items-center gap-0.5 px-1 py-1.5"
+              aria-label={label}
+              className={`mx-auto flex min-w-0 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+                isActive
+                  ? "bg-[color:var(--accent-soft)] text-[color:var(--accent)]"
+                  : "text-[color:var(--ink-3)]"
+              }`}
             >
-              <div
-                className={`flex h-8 w-12 items-center justify-center rounded-full transition-colors ${
-                  isActive
-                    ? "bg-[color:var(--accent-soft)] text-[color:var(--accent)]"
-                    : "text-[color:var(--ink-3)]"
-                }`}
-              >
-                <Icon
-                  className="h-[18px] w-[18px]"
-                  strokeWidth={isActive ? 2.2 : 1.7}
-                />
-              </div>
+              <Icon
+                className="h-[18px] w-[18px] flex-shrink-0"
+                strokeWidth={isActive ? 2.2 : 1.8}
+              />
               <span
-                className={`max-w-full truncate text-[10px] leading-tight ${
-                  isActive
-                    ? "font-medium text-[color:var(--accent)]"
-                    : "text-[color:var(--ink-3)]"
+                className={`truncate text-[12px] leading-none ${
+                  isActive ? "font-semibold" : "font-medium"
                 }`}
               >
                 {label}

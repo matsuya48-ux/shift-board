@@ -15,7 +15,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       className="relative flex min-h-screen flex-col"
       style={{
         paddingBottom:
-          "calc(env(safe-area-inset-bottom, 0px) + 6.5rem)",
+          "calc(env(safe-area-inset-bottom, 0px) + 4rem)",
       }}
     >
       <AppHeader staff={staff} />
