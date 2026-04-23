@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Settings2,
   Printer,
-  Sparkles,
 } from "lucide-react";
 
 export default async function AdminPage() {
@@ -21,7 +20,6 @@ export default async function AdminPage() {
     { count: staffCount },
     { count: pendingTimeOffCount },
     { count: todayShiftCount },
-    { count: openFeedbackCount },
   ] = await Promise.all([
     supabase
       .from("staffs")
@@ -35,10 +33,6 @@ export default async function AdminPage() {
       .from("shifts")
       .select("*", { count: "exact", head: true })
       .eq("work_date", new Date().toISOString().split("T")[0]),
-    supabase
-      .from("feature_requests")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["new", "read"]),
   ]);
 
   return (
@@ -121,17 +115,6 @@ export default async function AdminPage() {
           その他
         </p>
         <section className="space-y-3">
-          <SecondaryMenuCard
-            href="/admin/feedback"
-            title="機能リクエスト"
-            subtitle={
-              (openFeedbackCount ?? 0) > 0
-                ? `${openFeedbackCount} 件の未対応があります`
-                : "スタッフからの要望・不具合"
-            }
-            Icon={Sparkles}
-            badge={openFeedbackCount ?? 0}
-          />
           <SecondaryMenuCard
             href="/admin/settings"
             title="設定"
@@ -251,13 +234,11 @@ function SecondaryMenuCard({
   title,
   subtitle,
   Icon,
-  badge,
 }: {
   href: string;
   title: string;
   subtitle: string;
   Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  badge?: number;
 }) {
   return (
     <Link
@@ -275,11 +256,6 @@ function SecondaryMenuCard({
           {subtitle}
         </p>
       </div>
-      {badge && badge > 0 ? (
-        <span className="flex h-6 min-w-[1.5rem] flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--warning)] px-2 text-[11px] font-bold text-white">
-          {badge}
-        </span>
-      ) : null}
       <ChevronRight
         className="h-4 w-4 flex-shrink-0 text-[color:var(--ink-4)]"
         strokeWidth={2}
