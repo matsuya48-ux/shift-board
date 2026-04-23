@@ -620,13 +620,18 @@ function WarehouseMonthGrid({
                     const dateStr = toISODate(d);
                     const evs = eventByDate.get(dateStr) ?? [];
                     const dow = d.getDay();
+                    const isToday = dateStr === todayStr;
                     const holiday = isHoliday(dateStr);
                     const isOff = dow === 0 || dow === 6 || holiday;
                     return (
                       <td
                         key={dateStr}
                         className={`w-10 border-r border-[color:var(--line)] px-0.5 py-1 text-center align-top ${
-                          isOff ? "bg-[color:var(--off-day)]" : ""
+                          isToday
+                            ? "bg-[color:var(--accent-soft)]"
+                            : isOff
+                              ? "bg-[color:var(--off-day)]"
+                              : ""
                         }`}
                       >
                         {evs.length > 0 && (
@@ -666,13 +671,18 @@ function WarehouseMonthGrid({
                       overrides,
                     );
                     const dow = d.getDay();
+                    const isToday = dateStr === todayStr;
                     const holiday = isHoliday(dateStr);
                     const isOff = dow === 0 || dow === 6 || holiday;
                     return (
                       <td
                         key={dateStr}
                         className={`w-10 border-r border-[color:var(--line)] px-0.5 py-1 text-center align-top ${
-                          isOff ? "bg-[color:var(--off-day)]" : ""
+                          isToday
+                            ? "bg-[color:var(--accent-soft)]"
+                            : isOff
+                              ? "bg-[color:var(--off-day)]"
+                              : ""
                         }`}
                       >
                         {labels.map((l, i) => (
@@ -711,7 +721,7 @@ function WarehouseMonthGrid({
                   >
                     <th
                       scope="row"
-                      className="sticky left-0 z-10 w-20 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1 text-left text-[12px] font-medium text-[color:var(--ink)]"
+                      className="sticky left-0 z-10 w-20 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] px-1 py-1 text-center text-[12px] font-medium text-[color:var(--ink)]"
                     >
                       {s.display_name.split(/\s+/)[0]}
                     </th>
