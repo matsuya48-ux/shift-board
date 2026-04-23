@@ -564,9 +564,8 @@ function WarehouseMonthGrid({
           <table className="w-full border-collapse text-left">
             <thead className="sticky top-0 z-30">
               <tr className="border-b-2 border-[color:var(--line-strong)] bg-[color:var(--bg)]">
-                <th className="sticky left-0 z-30 w-24 border-r border-[color:var(--line-strong)] bg-[color:var(--bg)] pl-4 pr-2 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[color:var(--ink-3)]">
-                  名前
-                </th>
+                <th className="sticky left-0 z-30 w-20 border-r border-[color:var(--line-strong)] bg-[color:var(--bg)] pl-1.5 pr-1 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[color:var(--ink-3)]" />
+
                 {days.map((d) => {
                   const dateStr = toISODate(d);
                   const dow = d.getDay();
@@ -617,7 +616,7 @@ function WarehouseMonthGrid({
                 <tr className="border-b border-[color:var(--line)] bg-white">
                   <th
                     scope="row"
-                    className="sticky left-0 z-10 w-24 border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-4 pr-2 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
+                    className="sticky left-0 z-10 w-20 whitespace-nowrap border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
                   >
                     イベ
                   </th>
@@ -658,7 +657,7 @@ function WarehouseMonthGrid({
                 <tr className="border-b border-[color:var(--line)] bg-[color:var(--surface)]">
                   <th
                     scope="row"
-                    className="sticky left-0 z-10 w-24 border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-4 pr-2 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
+                    className="sticky left-0 z-10 w-20 whitespace-nowrap border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
                   >
                     {warehouse.name.includes("本部") ? "出荷" : "事業部"}
                   </th>
@@ -716,7 +715,7 @@ function WarehouseMonthGrid({
                   >
                     <th
                       scope="row"
-                      className="sticky left-0 z-10 w-24 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1 text-left text-[12px] font-medium text-[color:var(--ink)]"
+                      className="sticky left-0 z-10 w-20 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1 text-left text-[12px] font-medium text-[color:var(--ink)]"
                     >
                       {s.display_name.split(/\s+/)[0]}
                     </th>
@@ -785,9 +784,9 @@ function WarehouseMonthGrid({
               <tr className="border-t-2 border-[color:var(--line-strong)] bg-[color:var(--bg)]">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 w-24 border-r border-[color:var(--line-strong)] bg-[color:var(--bg)] pl-4 pr-2 py-2 text-left text-[11px] font-semibold text-[color:var(--ink-2)]"
+                  className="sticky left-0 z-10 w-20 whitespace-nowrap border-r border-[color:var(--line-strong)] bg-[color:var(--bg)] pl-1.5 pr-1 py-2 text-left text-[11px] font-semibold text-[color:var(--ink-2)]"
                 >
-                  合計人数
+                  人数
                 </th>
                 {days.map((d) => {
                   const dateStr = toISODate(d);
