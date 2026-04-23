@@ -6,13 +6,11 @@ import { MyCalendarCarousel } from "@/components/MyCalendarCarousel";
 import { InstallPromptCard } from "@/components/InstallPromptCard";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { TimeOffReminder } from "@/components/TimeOffReminder";
-import { BrandLogo } from "@/components/BrandLogo";
 import {
   CalendarHeart,
   Users,
   Settings,
   ChevronRight,
-  Bell,
 } from "lucide-react";
 import {
   summarize,
@@ -62,7 +60,6 @@ export default async function DashboardPage() {
 
   const [
     { count: pendingCount },
-    { count: notifCount },
     { data: weekShiftsRaw },
     { data: allShiftsRaw },
     { data: allTimeOffsRaw },
@@ -76,11 +73,6 @@ export default async function DashboardPage() {
       .select("*", { count: "exact", head: true })
       .eq("staff_id", staff.id)
       .eq("status", "pending"),
-    supabase
-      .from("notifications")
-      .select("*", { count: "exact", head: true })
-      .eq("staff_id", staff.id)
-      .eq("is_read", false),
     supabase
       .from("shifts")
       .select("*")
@@ -199,32 +191,7 @@ export default async function DashboardPage() {
       <div
         className="mx-auto w-full px-0 pb-8 pt-6 sm:max-w-2xl"
       >
-        <header className="mb-6 flex items-center justify-between gap-3 animate-rise">
-          <BrandLogo size="lg" />
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <button
-              type="button"
-              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--surface)] shadow-[var(--shadow-sm)] active:scale-95"
-            >
-              <Bell
-                className="h-[18px] w-[18px] text-[color:var(--ink-2)]"
-                strokeWidth={1.8}
-              />
-              {(notifCount ?? 0) > 0 && (
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[color:var(--danger)]" />
-              )}
-            </button>
-            <Link
-              href="/select-staff"
-              className="flex h-10 min-w-[2.5rem] items-center justify-center rounded-full bg-[color:var(--accent)] px-2.5 text-[12px] font-semibold text-white active:scale-95"
-              aria-label="スタッフ切替"
-            >
-              {initial}
-            </Link>
-          </div>
-        </header>
-
-        <div className="mb-6 animate-rise">
+        <div className="mb-6 animate-rise px-3">
           <h1 className="truncate text-[22px] font-semibold tracking-tight text-[color:var(--ink)]">
             {staff.display_name}
             <span className="text-[color:var(--ink-3)]"> さん</span>
