@@ -312,10 +312,10 @@ export default async function DashboardPage() {
           </div>
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="text-[14px] font-semibold tracking-tight text-[color:var(--ink)]">
-              機能追加リクエスト
+              こんなの欲しい
             </p>
             <p className="text-[11px] text-[color:var(--ink-3)]">
-              こうなったら便利・不具合の報告
+              機能・見た目・不具合などを気軽に送る
             </p>
           </div>
           <ChevronRight

@@ -8,7 +8,7 @@ import { FeedbackItem } from "./_components/FeedbackItem";
 type FeedbackRow = {
   id: string;
   staff_id: string;
-  category: "feature" | "bug" | "other";
+  category: "feature" | "ui" | "bug" | "other";
   title: string;
   body: string;
   status: "new" | "read" | "done" | "archived";

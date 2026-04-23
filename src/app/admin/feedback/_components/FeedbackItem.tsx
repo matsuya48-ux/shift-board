@@ -2,7 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Bug, MessageCircle, Trash2, Loader2 } from "lucide-react";
+import {
+  Sparkles,
+  Palette,
+  Bug,
+  MessageCircle,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import {
   updateFeedbackStatus,
   updateFeedbackNote,
@@ -12,7 +19,7 @@ import {
 
 type Props = {
   id: string;
-  category: "feature" | "bug" | "other";
+  category: "feature" | "ui" | "bug" | "other";
   title: string;
   body: string;
   status: FeedbackStatus;
@@ -22,7 +29,8 @@ type Props = {
 };
 
 const CATEGORY_META = {
-  feature: { label: "機能追加", Icon: Sparkles, color: "#2d5545" },
+  feature: { label: "機能", Icon: Sparkles, color: "#2d5545" },
+  ui: { label: "見た目", Icon: Palette, color: "#8c6d3a" },
   bug: { label: "不具合", Icon: Bug, color: "#c24a4a" },
   other: { label: "その他", Icon: MessageCircle, color: "#5a7d9a" },
 } as const;

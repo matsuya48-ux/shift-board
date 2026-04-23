@@ -2,33 +2,51 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Send, Sparkles, Bug, MessageCircle } from "lucide-react";
+import {
+  Loader2,
+  Send,
+  Sparkles,
+  Palette,
+  Bug,
+  MessageCircle,
+} from "lucide-react";
 import { createFeedback, type FeedbackCategory } from "../actions";
 
 type CategoryDef = {
   value: FeedbackCategory;
   label: string;
   description: string;
+  placeholder: string;
   Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
 };
 
 const CATEGORIES: CategoryDef[] = [
   {
     value: "feature",
-    label: "機能追加",
+    label: "機能",
     description: "こんな機能があったら嬉しい",
+    placeholder: "例：希望休の一括取消ボタンが欲しい",
     Icon: Sparkles,
+  },
+  {
+    value: "ui",
+    label: "見た目",
+    description: "色・配置・サイズなど見た目の微調整",
+    placeholder: "例：シフト表の名前の文字をもう少し大きく",
+    Icon: Palette,
   },
   {
     value: "bug",
     label: "不具合",
     description: "うまく動かない・表示が変",
+    placeholder: "例：スマホ横向きで表が崩れる",
     Icon: Bug,
   },
   {
     value: "other",
     label: "その他",
-    description: "質問・感想・要望など",
+    description: "質問・感想・ちょっとした要望など",
+    placeholder: "自由に書いてください",
     Icon: MessageCircle,
   },
 ];
@@ -74,7 +92,7 @@ export function FeedbackForm() {
           カテゴリ
         </label>
         <input type="hidden" name="category" value={category} />
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {CATEGORIES.map(({ value, label, Icon }) => {
             const active = category === value;
             return (
@@ -83,7 +101,7 @@ export function FeedbackForm() {
                 type="button"
                 onClick={() => setCategory(value)}
                 disabled={isPending}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-center transition-colors ${
+                className={`flex flex-col items-center gap-1 rounded-2xl border p-2.5 text-center transition-colors ${
                   active
                     ? "border-[color:var(--accent)] bg-[color:var(--accent-soft)]"
                     : "border-[color:var(--line)] bg-[color:var(--surface)]"
@@ -98,7 +116,7 @@ export function FeedbackForm() {
                   strokeWidth={active ? 2.2 : 1.8}
                 />
                 <span
-                  className={`text-[12px] font-medium ${
+                  className={`text-[11px] font-medium ${
                     active
                       ? "text-[color:var(--accent)]"
                       : "text-[color:var(--ink-2)]"
@@ -135,7 +153,9 @@ export function FeedbackForm() {
           disabled={isPending}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="例：希望休の一括取消ボタンが欲しい"
+          placeholder={
+            CATEGORIES.find((c) => c.value === category)?.placeholder ?? ""
+          }
           className="h-12 w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] px-4 text-[14px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
         />
       </div>

@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentStaff } from "@/lib/staff-session";
 import { revalidatePath } from "next/cache";
 
-export type FeedbackCategory = "feature" | "bug" | "other";
+export type FeedbackCategory = "feature" | "ui" | "bug" | "other";
 
 export type FeedbackActionResult = {
   ok: boolean;
@@ -12,7 +12,7 @@ export type FeedbackActionResult = {
 };
 
 /**
- * スタッフからの機能追加リクエスト・不具合報告・問い合わせを登録する。
+ * スタッフからの機能追加リクエスト・見た目の要望・不具合報告・問い合わせを登録する。
  */
 export async function createFeedback(
   formData: FormData,
@@ -24,7 +24,7 @@ export async function createFeedback(
   const title = ((formData.get("title") as string) ?? "").trim();
   const body = ((formData.get("body") as string) ?? "").trim();
 
-  if (!["feature", "bug", "other"].includes(category)) {
+  if (!["feature", "ui", "bug", "other"].includes(category)) {
     return { ok: false, message: "カテゴリが不正です" };
   }
   if (!title) return { ok: false, message: "タイトルを入力してください" };

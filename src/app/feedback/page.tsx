@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Bug, MessageCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Sparkles,
+  Palette,
+  Bug,
+  MessageCircle,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { requireStaff } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -7,7 +13,7 @@ import { FeedbackForm } from "./_components/FeedbackForm";
 
 type FeedbackRow = {
   id: string;
-  category: "feature" | "bug" | "other";
+  category: "feature" | "ui" | "bug" | "other";
   title: string;
   body: string;
   status: "new" | "read" | "done" | "archived";
@@ -16,7 +22,8 @@ type FeedbackRow = {
 };
 
 const CATEGORY_META = {
-  feature: { label: "機能追加", Icon: Sparkles, color: "#2d5545" },
+  feature: { label: "機能", Icon: Sparkles, color: "#2d5545" },
+  ui: { label: "見た目", Icon: Palette, color: "#8c6d3a" },
   bug: { label: "不具合", Icon: Bug, color: "#c24a4a" },
   other: { label: "その他", Icon: MessageCircle, color: "#5a7d9a" },
 } as const;
@@ -66,10 +73,12 @@ export default async function FeedbackPage() {
             Feedback
           </p>
           <h1 className="mt-2.5 text-[26px] font-semibold leading-[1.35] tracking-tight text-[color:var(--ink)]">
-            開発者へリクエスト
+            こんなの欲しい
           </h1>
           <p className="mt-2 text-[12px] leading-relaxed text-[color:var(--ink-3)]">
-            「こうなったら便利」を送ってください。内容は管理者のみが確認します。
+            「こんな機能があったら嬉しい」「見た目をもう少しこうしてほしい」
+            <br />
+            どんな小さな要望でも歓迎です。内容は管理者のみが確認します。
           </p>
         </header>
 
