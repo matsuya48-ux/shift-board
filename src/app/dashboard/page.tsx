@@ -262,10 +262,10 @@ export default async function DashboardPage() {
             </h2>
             <Link
               href="/shifts/all"
-              className="flex items-center gap-0.5 text-[11px] font-medium text-[color:var(--accent)] active:opacity-60"
+              className="flex items-center gap-1 text-[17px] font-semibold text-[color:var(--accent)] active:opacity-60"
             >
               全員を見る
-              <ChevronRight className="h-3 w-3" strokeWidth={2.2} />
+              <ChevronRight className="h-4 w-4" strokeWidth={2.2} />
             </Link>
           </div>
           <MyCalendarCarousel

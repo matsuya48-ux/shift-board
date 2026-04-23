@@ -93,9 +93,9 @@ export function MyCalendarCarousel({
   const canNext = index < months.length - 1;
 
   return (
-    <div className="rounded-3xl bg-[color:var(--surface)] p-5 shadow-[var(--shadow-sm)]">
+    <div className="rounded-3xl bg-[color:var(--surface)] px-1 py-5 shadow-[var(--shadow-sm)]">
       {/* ヘッダー：月切替 */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between px-3">
         <button
           type="button"
           onClick={() => canPrev && setIndex(index - 1)}
@@ -160,12 +160,14 @@ export function MyCalendarCarousel({
       </div>
 
       {/* スケジュール情報 */}
-      <ScheduleInfo
-        events={current.events}
-        weekdayLabels={weekdayLabels.filter(
-          (l) => l.warehouse_id === warehouseId,
-        )}
-      />
+      <div className="px-3">
+        <ScheduleInfo
+          events={current.events}
+          weekdayLabels={weekdayLabels.filter(
+            (l) => l.warehouse_id === warehouseId,
+          )}
+        />
+      </div>
 
       {/* 実働修正モーダル */}
       {editingShift && (
