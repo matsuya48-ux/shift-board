@@ -10,7 +10,11 @@ function parseForm(formData: FormData) {
   const warehouse_id = (formData.get("warehouse_id") as string) ?? "";
   const role = (formData.get("role") as "staff" | "admin") ?? "staff";
   const employment_type =
-    (formData.get("employment_type") as "full" | "part" | "contract") ?? "part";
+    (formData.get("employment_type") as
+      | "full"
+      | "part"
+      | "contract"
+      | "short") ?? "part";
   const weekly_hour_limit_raw = formData.get("weekly_hour_limit") as string;
   const weekly_hour_limit =
     weekly_hour_limit_raw && weekly_hour_limit_raw !== ""

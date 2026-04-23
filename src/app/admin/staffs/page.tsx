@@ -8,7 +8,7 @@ type Staff = {
   id: string;
   display_name: string;
   role: "staff" | "admin";
-  employment_type: "full" | "part" | "contract";
+  employment_type: "full" | "part" | "contract" | "short";
   weekly_hour_limit: number | null;
   preferred_start_time: string | null;
   preferred_end_time: string | null;
@@ -20,6 +20,7 @@ const EMPLOYMENT_LABEL = {
   full: "正社員",
   part: "パート",
   contract: "契約",
+  short: "短時間社員",
 };
 
 export default async function AdminStaffsPage({

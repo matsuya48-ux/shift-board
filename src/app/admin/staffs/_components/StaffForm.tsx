@@ -10,7 +10,7 @@ type StaffFormValues = {
   display_name: string;
   warehouse_id: string;
   role: "staff" | "admin";
-  employment_type: "full" | "part" | "contract";
+  employment_type: "full" | "part" | "contract" | "short";
   weekly_hour_limit: number | null;
   preferred_start_time: string | null;
   preferred_end_time: string | null;
@@ -110,6 +110,7 @@ export function StaffForm({
             className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 text-[14px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
           >
             <option value="full">正社員</option>
+            <option value="short">短時間社員</option>
             <option value="part">パート</option>
             <option value="contract">契約</option>
           </select>

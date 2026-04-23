@@ -383,7 +383,7 @@ function HoursCard({
   const ratio = limit ? Math.min(100, (total / limit) * 100) : 0;
 
   return (
-    <div className="flex items-stretch gap-3 rounded-2xl bg-[color:var(--surface)] py-5 pl-5 pr-5 shadow-[var(--shadow-sm)]">
+    <div className="flex items-stretch gap-3 rounded-2xl bg-[color:var(--surface)] py-3 pl-5 pr-5 shadow-[var(--shadow-sm)]">
       {/* 左側のアクセント */}
       <div
         className={`w-1 flex-shrink-0 rounded-full ${
@@ -407,9 +407,9 @@ function HoursCard({
             </p>
           )}
         </div>
-        <p className="mt-2 flex items-baseline gap-1 tabular-nums">
+        <p className="mt-1 flex items-baseline gap-1 tabular-nums">
           <span
-            className={`text-[24px] font-semibold leading-none tracking-tight ${
+            className={`text-[17px] font-semibold leading-none tracking-tight ${
               overLimit
                 ? "text-[color:var(--danger)]"
                 : "text-[color:var(--ink)]"
@@ -420,7 +420,7 @@ function HoursCard({
           <span className="text-[11px] text-[color:var(--ink-3)]">h</span>
           {days !== undefined && (
             <>
-              <span className="ml-2 text-[24px] font-semibold leading-none tracking-tight tabular-nums text-[color:var(--ink)]">
+              <span className="ml-2 text-[17px] font-semibold leading-none tracking-tight tabular-nums text-[color:var(--ink)]">
                 {days}
               </span>
               <span className="text-[11px] text-[color:var(--ink-3)]">日</span>
@@ -428,7 +428,7 @@ function HoursCard({
           )}
         </p>
         {limit && (
-          <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
+          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
             <div
               className={`h-full rounded-full transition-all ${
                 overLimit
@@ -439,7 +439,7 @@ function HoursCard({
             />
           </div>
         )}
-        <p className="mt-2 text-[10px] leading-relaxed text-[color:var(--ink-3)] tabular-nums">
+        <p className="mt-1.5 text-[10px] leading-relaxed text-[color:var(--ink-3)] tabular-nums">
           実 {fmtHours(actual)}
           <span className="mx-1">＋</span>
           予 {fmtHours(planned)}
