@@ -660,7 +660,7 @@ function WarehouseMonthGrid({
                     scope="row"
                     className="sticky left-0 z-10 w-24 border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-4 pr-2 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
                   >
-                    事業部
+                    {warehouse.name.includes("本部") ? "出荷" : "事業部"}
                   </th>
                   {days.map((d) => {
                     const dateStr = toISODate(d);

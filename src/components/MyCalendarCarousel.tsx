@@ -47,6 +47,7 @@ type Props = {
   overrides: DateLabelOverride[];
   todayStr: string;
   warehouseId: string;
+  isHonbu?: boolean;
 };
 
 const WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"];
@@ -58,6 +59,7 @@ export function MyCalendarCarousel({
   overrides,
   todayStr,
   warehouseId,
+  isHonbu = false,
 }: Props) {
   const [index, setIndex] = useState(1); // 1 = 今月
   const [editingShift, setEditingShift] = useState<ShiftRow | null>(null);
@@ -166,6 +168,7 @@ export function MyCalendarCarousel({
           weekdayLabels={weekdayLabels.filter(
             (l) => l.warehouse_id === warehouseId,
           )}
+          isHonbu={isHonbu}
         />
       </div>
 
@@ -387,9 +390,11 @@ const WEEKDAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
 function ScheduleInfo({
   events,
   weekdayLabels,
+  isHonbu = false,
 }: {
   events: WarehouseEvent[];
   weekdayLabels: WeekdayLabel[];
+  isHonbu?: boolean;
 }) {
   if (events.length === 0 && weekdayLabels.length === 0) return null;
 
@@ -408,7 +413,7 @@ function ScheduleInfo({
       {sortedWeekdays.length > 0 && (
         <div>
           <p className="mb-1.5 text-[10px] font-medium tracking-[0.08em] text-[color:var(--ink-3)]">
-            事業部別出荷スケジュール
+            {isHonbu ? "出荷スケジュール" : "事業部別出荷スケジュール"}
           </p>
           <div className="grid grid-cols-3 gap-1.5">
             {sortedWeekdays.map((l) => (

@@ -41,6 +41,13 @@ export default async function DashboardPage() {
     .single();
   const weeklyLimit = staffDetail?.weekly_hour_limit ?? null;
 
+  const { data: warehouseRow } = await supabase
+    .from("warehouses")
+    .select("name")
+    .eq("id", staff.warehouse_id)
+    .single();
+  const isHonbu = (warehouseRow?.name ?? "").includes("本部");
+
   const now = new Date();
 
   // 3ヶ月分の範囲
@@ -275,6 +282,7 @@ export default async function DashboardPage() {
             overrides={overrides}
             todayStr={todayStr}
             warehouseId={staff.warehouse_id}
+            isHonbu={isHonbu}
           />
         </section>
 
