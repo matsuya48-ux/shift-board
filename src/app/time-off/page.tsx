@@ -43,14 +43,9 @@ export default async function TimeOffPage() {
           <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--accent)]">
             <Info className="h-3 w-3 text-white" strokeWidth={2.5} />
           </div>
-          <div className="text-[12px] leading-relaxed space-y-1">
-            <p className="font-semibold text-[color:var(--ink)]">
-              他の方には表示されません
-            </p>
-            <p className="text-[color:var(--ink-2)]">
-              翌月分は毎月10日までに申請してください
-            </p>
-          </div>
+          <p className="text-[12px] leading-relaxed text-[color:var(--ink-2)]">
+            翌月分は毎月10日までに申請してください
+          </p>
         </div>
 
         {/* 申請フォームカード */}

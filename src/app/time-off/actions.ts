@@ -7,41 +7,69 @@ import { revalidatePath } from "next/cache";
 export type TimeOffActionResult = {
   ok: boolean;
   message?: string;
+  created?: number;
+  skipped?: number;
 };
 
-export async function createTimeOffRequest(
-  formData: FormData,
+/**
+ * 複数日の希望休をまとめて申請する。
+ * 既に申請済みの日付はスキップして、新規分だけ登録する。
+ */
+export async function createTimeOffRequests(
+  dates: string[],
 ): Promise<TimeOffActionResult> {
   const staff = await getCurrentStaff();
   if (!staff) return { ok: false, message: "スタッフが選択されていません" };
 
-  const requestDate = formData.get("request_date") as string;
-  if (!requestDate) {
+  if (!Array.isArray(dates) || dates.length === 0) {
     return { ok: false, message: "日付を選択してください" };
   }
 
+  // 今日以降のみ許可
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(requestDate);
-  if (target < today) {
-    return { ok: false, message: "過去の日付は申請できません" };
+  for (const d of dates) {
+    const target = new Date(d + "T00:00:00");
+    if (target < today) {
+      return { ok: false, message: "過去の日付は申請できません" };
+    }
   }
 
   const supabase = createAdminClient();
-  const { error } = await supabase.from("time_off_requests").insert({
-    staff_id: staff.id,
-    request_date: requestDate,
-  });
+
+  // 既存の申請を確認して重複を除外
+  const { data: existing } = await supabase
+    .from("time_off_requests")
+    .select("request_date")
+    .eq("staff_id", staff.id)
+    .in("request_date", dates);
+
+  const existingSet = new Set(
+    (existing ?? []).map((r: { request_date: string }) => r.request_date),
+  );
+  const toInsert = dates.filter((d) => !existingSet.has(d));
+  const skipped = dates.length - toInsert.length;
+
+  if (toInsert.length === 0) {
+    return {
+      ok: false,
+      message: "選択した日付はすべて申請済みです",
+    };
+  }
+
+  const { error } = await supabase.from("time_off_requests").insert(
+    toInsert.map((d) => ({
+      staff_id: staff.id,
+      request_date: d,
+    })),
+  );
 
   if (error) {
-    if (error.code === "23505") {
-      return { ok: false, message: "この日付は既に申請済みです" };
-    }
     return { ok: false, message: `登録に失敗しました: ${error.message}` };
   }
 
   revalidatePath("/time-off");
-  return { ok: true };
+  return { ok: true, created: toInsert.length, skipped };
 }
 
 export async function cancelTimeOffRequest(
