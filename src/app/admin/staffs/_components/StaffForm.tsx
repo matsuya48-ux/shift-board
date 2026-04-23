@@ -42,6 +42,24 @@ export function StaffForm({
     text: string;
   } | null>(null);
 
+  // 雇用形態と週上限を連動させる（パート選択時に空欄なら自動で20をセット）
+  const [employmentType, setEmploymentType] = useState<
+    "full" | "part" | "contract" | "short"
+  >(initial?.employment_type ?? "part");
+  const [weeklyHourLimit, setWeeklyHourLimit] = useState<string>(
+    initial?.weekly_hour_limit != null ? String(initial.weekly_hour_limit) : "",
+  );
+
+  function handleEmploymentChange(
+    next: "full" | "part" | "contract" | "short",
+  ) {
+    setEmploymentType(next);
+    // パートに切り替えた瞬間、かつ現在値が空のときだけ20をセット
+    if (next === "part" && weeklyHourLimit.trim() === "") {
+      setWeeklyHourLimit("20");
+    }
+  }
+
   async function handleSubmit(formData: FormData) {
     setMessage(null);
     startTransition(async () => {
@@ -106,7 +124,12 @@ export function StaffForm({
         <Field label="雇用形態">
           <select
             name="employment_type"
-            defaultValue={initial?.employment_type ?? "part"}
+            value={employmentType}
+            onChange={(e) =>
+              handleEmploymentChange(
+                e.target.value as "full" | "part" | "contract" | "short",
+              )
+            }
             className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 text-[14px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
           >
             <option value="full">正社員</option>
@@ -117,14 +140,22 @@ export function StaffForm({
         </Field>
       </div>
 
-      <Field label="週の上限時間（任意）" hint="20時間制限などがある場合に入力">
+      <Field
+        label="週の上限時間（任意）"
+        hint={
+          employmentType === "part"
+            ? "パートは週20時間上限（自動入力）"
+            : "20時間制限などがある場合に入力"
+        }
+      >
         <div className="flex items-center gap-2">
           <input
             name="weekly_hour_limit"
             type="number"
             min={1}
             max={60}
-            defaultValue={initial?.weekly_hour_limit ?? ""}
+            value={weeklyHourLimit}
+            onChange={(e) => setWeeklyHourLimit(e.target.value)}
             placeholder="未設定"
             className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 text-[14px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
           />
