@@ -1,7 +1,8 @@
 /**
  * 全ページ共通のアプリヘッダー
- * - 左: アプリ名（BrandLogo）＋ 本日の日付
+ * - 左: アプリ名（BrandLogo／ダッシュボードへのリンク）＋ 本日の日付
  * - 右: 通知ベル ＋ スタッフアバター（選択画面へ）
+ * - スクロール時も画面上部に追従（sticky）
  *
  * AppShell から呼び出され、認証済み全ページに表示される。
  */
@@ -31,14 +32,18 @@ export async function AppHeader({ staff }: { staff: SessionStaff }) {
   const today = formatToday(new Date());
 
   return (
-    <header className="border-b border-[color:var(--line)] bg-[color:var(--bg)]">
+    <header className="sticky top-0 z-40 border-b border-[color:var(--line)] bg-[color:var(--bg)]/90 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--bg)]/75">
       <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-3 py-3">
-        <div className="min-w-0 flex-1">
+        <Link
+          href="/dashboard"
+          aria-label="ダッシュボードへ"
+          className="min-w-0 flex-1 active:opacity-70"
+        >
           <BrandLogo size="lg" />
           <p className="mt-1 text-[11px] tabular-nums text-[color:var(--ink-3)]">
             {today}
           </p>
-        </div>
+        </Link>
         <div className="flex flex-shrink-0 items-center gap-2">
           <button
             type="button"

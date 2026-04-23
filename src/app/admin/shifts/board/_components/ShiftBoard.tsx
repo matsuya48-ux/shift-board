@@ -175,7 +175,7 @@ export function ShiftBoard({
       <div className="rounded-2xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] shadow-[var(--shadow-sm)]">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <thead className="sticky top-0 z-30">
+            <thead className="sticky top-[4.5rem] z-20">
               <tr className="border-b-2 border-[color:var(--line-strong)] bg-[color:var(--bg)]">
                 <th className="sticky left-0 z-30 w-24 border-r border-[color:var(--line-strong)] bg-[color:var(--bg)] pl-4 pr-2 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[color:var(--ink-3)]">
                   名前

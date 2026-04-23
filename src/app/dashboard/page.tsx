@@ -266,7 +266,7 @@ export default async function DashboardPage() {
               全員のシフトを見る
             </p>
             <p className="text-[11px] text-[color:var(--ink-3)]">
-              今月の出勤予定・イベント・事業部
+              今月の出勤予定・イベント・{isHonbu ? "本部出荷" : "事業部"}
             </p>
           </div>
           <ChevronRight
@@ -350,7 +350,7 @@ function HoursCard({
   const ratio = limit ? Math.min(100, (total / limit) * 100) : 0;
 
   return (
-    <div className="flex items-stretch gap-3 rounded-2xl bg-[color:var(--surface)] py-3 pl-5 pr-5 shadow-[var(--shadow-sm)]">
+    <div className="flex items-stretch gap-2.5 rounded-2xl bg-[color:var(--surface)] py-2 pl-4 pr-4 shadow-[var(--shadow-sm)]">
       {/* 左側のアクセント */}
       <div
         className={`w-1 flex-shrink-0 rounded-full ${
@@ -358,44 +358,45 @@ function HoursCard({
         }`}
       />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between">
+        {/* ラベルと数値を1行に並べて高さを圧縮 */}
+        <div className="flex items-baseline justify-between gap-2">
           <p className="text-[11px] font-medium text-[color:var(--ink-3)]">
             {label}
           </p>
-          {limit && (
-            <p
-              className={`text-[10px] font-medium tabular-nums ${
+          <p className="flex items-baseline gap-0.5 tabular-nums">
+            <span
+              className={`text-[17px] font-semibold leading-none tracking-tight ${
                 overLimit
                   ? "text-[color:var(--danger)]"
-                  : "text-[color:var(--ink-3)]"
+                  : "text-[color:var(--ink)]"
               }`}
             >
-              / {limit}h
-            </p>
-          )}
-        </div>
-        <p className="mt-1 flex items-baseline gap-1 tabular-nums">
-          <span
-            className={`text-[17px] font-semibold leading-none tracking-tight ${
-              overLimit
-                ? "text-[color:var(--danger)]"
-                : "text-[color:var(--ink)]"
-            }`}
-          >
-            {fmtHours(total)}
-          </span>
-          <span className="text-[11px] text-[color:var(--ink-3)]">h</span>
-          {days !== undefined && (
-            <>
-              <span className="ml-2 text-[17px] font-semibold leading-none tracking-tight tabular-nums text-[color:var(--ink)]">
-                {days}
+              {fmtHours(total)}
+            </span>
+            <span className="text-[10px] text-[color:var(--ink-3)]">h</span>
+            {days !== undefined && (
+              <>
+                <span className="ml-1.5 text-[17px] font-semibold leading-none tracking-tight text-[color:var(--ink)]">
+                  {days}
+                </span>
+                <span className="text-[10px] text-[color:var(--ink-3)]">日</span>
+              </>
+            )}
+            {limit && (
+              <span
+                className={`ml-1.5 text-[9px] font-medium ${
+                  overLimit
+                    ? "text-[color:var(--danger)]"
+                    : "text-[color:var(--ink-3)]"
+                }`}
+              >
+                /{limit}h
               </span>
-              <span className="text-[11px] text-[color:var(--ink-3)]">日</span>
-            </>
-          )}
-        </p>
+            )}
+          </p>
+        </div>
         {limit && (
-          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
+          <div className="mt-1 h-0.5 overflow-hidden rounded-full bg-[color:var(--bg)]">
             <div
               className={`h-full rounded-full transition-all ${
                 overLimit
@@ -406,9 +407,9 @@ function HoursCard({
             />
           </div>
         )}
-        <p className="mt-1.5 text-[10px] leading-relaxed text-[color:var(--ink-3)] tabular-nums">
+        <p className="mt-1 text-[9px] leading-tight text-[color:var(--ink-3)] tabular-nums">
           実 {fmtHours(actual)}
-          <span className="mx-1">＋</span>
+          <span className="mx-0.5">＋</span>
           予 {fmtHours(planned)}
         </p>
       </div>
