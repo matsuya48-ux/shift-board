@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentStaff } from "@/lib/staff-session";
+import { notifyFeedbackByEmail } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 
 export type FeedbackCategory = "feature" | "ui" | "bug" | "other";
@@ -13,6 +14,7 @@ export type FeedbackActionResult = {
 
 /**
  * スタッフからの機能追加リクエスト・見た目の要望・不具合報告・問い合わせを登録する。
+ * DBに保存した後、設定があれば管理者にメール通知する。
  */
 export async function createFeedback(
   formData: FormData,
@@ -46,6 +48,22 @@ export async function createFeedback(
 
   if (error) {
     return { ok: false, message: `送信に失敗しました: ${error.message}` };
+  }
+
+  // メール通知（失敗してもDB登録は成功扱いにする）
+  try {
+    const result = await notifyFeedbackByEmail({
+      category,
+      title,
+      body,
+      staffName: staff.display_name,
+      warehouseName: staff.warehouse_name,
+    });
+    if (!result.ok) {
+      console.warn("[feedback] メール通知スキップ:", result.error);
+    }
+  } catch (e) {
+    console.warn("[feedback] メール通知でエラー:", e);
   }
 
   revalidatePath("/feedback");
