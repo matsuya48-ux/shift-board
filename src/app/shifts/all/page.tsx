@@ -80,31 +80,27 @@ export default async function AllShiftsPage({
           marginRight: "auto",
           paddingLeft: "0.25rem",
           paddingRight: "0.25rem",
-          paddingTop: "1.75rem",
-          paddingBottom: "2rem",
+          paddingTop: "0.75rem",
+          paddingBottom: "1.25rem",
           boxSizing: "border-box",
         }}
         className="animate-rise"
       >
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1 text-[13px] text-[color:var(--ink-3)] active:opacity-60"
-        >
-          <ArrowLeft className="h-4 w-4" strokeWidth={1.8} />
-          ホーム
-        </Link>
-
-        <header className="mb-5 mt-5">
-          <p className="text-[11px] font-medium uppercase tracking-[0.15em] text-[color:var(--accent)]">
-            All Shifts
-          </p>
-          <h1 className="mt-2.5 text-[26px] font-semibold leading-[1.35] tracking-tight text-[color:var(--ink)]">
+        <header className="mb-3 flex items-center justify-between gap-2 px-1">
+          <h1 className="text-[18px] font-semibold tracking-tight text-[color:var(--ink)]">
             全員のシフト
           </h1>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1 text-[12px] text-[color:var(--ink-3)] active:opacity-60"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
+            ホーム
+          </Link>
         </header>
 
         {/* 拠点タブ */}
-        <div className="mb-3 flex gap-1 overflow-x-auto rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
+        <div className="mb-2 flex gap-1 overflow-x-auto rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
           {(() => {
             const qs = new URLSearchParams();
             qs.set("warehouse", "all");
@@ -114,7 +110,7 @@ export default async function AllShiftsPage({
             return (
               <Link
                 href={`?${qs.toString()}`}
-                className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[12px] font-medium transition-colors ${
+                className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-center text-[12px] font-medium transition-colors ${
                   isAll
                     ? "bg-[color:var(--accent)] text-white"
                     : "text-[color:var(--ink-3)]"
@@ -135,7 +131,7 @@ export default async function AllShiftsPage({
               <Link
                 key={wh.id}
                 href={`?${qs.toString()}`}
-                className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[12px] font-medium transition-colors ${
+                className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-center text-[12px] font-medium transition-colors ${
                   active
                     ? "bg-[color:var(--accent)] text-white"
                     : "text-[color:var(--ink-3)]"
@@ -148,7 +144,7 @@ export default async function AllShiftsPage({
         </div>
 
         {/* 表示切替タブ */}
-        <div className="mb-4 flex gap-1 rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
+        <div className="mb-3 flex gap-1 rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
           <ViewTab currentView={view} wh={whId} target="month" label="月" />
           <ViewTab currentView={view} wh={whId} target="day" label="日" />
         </div>
@@ -183,7 +179,7 @@ function ViewTab({
   return (
     <Link
       href={`?warehouse=${wh}&view=${target}`}
-      className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[12px] font-medium transition-colors ${
+      className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-center text-[12px] font-medium transition-colors ${
         active
           ? "bg-[color:var(--ink)] text-white"
           : "text-[color:var(--ink-3)]"
@@ -437,27 +433,27 @@ async function MonthView({
   return (
     <>
       {/* 月切替 */}
-      <div className="mb-4 flex items-center justify-between rounded-2xl bg-[color:var(--surface)] p-2 shadow-[var(--shadow-sm)]">
+      <div className="mb-3 flex items-center justify-between rounded-2xl bg-[color:var(--surface)] px-1.5 py-1 shadow-[var(--shadow-sm)]">
         <Link
           href={`?warehouse=${whId}&view=month&month=${prevMonth(year, mon)}`}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={2} />
         </Link>
         <div className="text-center">
-          <p className="text-[16px] font-semibold tabular-nums text-[color:var(--ink)]">
+          <p className="text-[14px] font-semibold tabular-nums text-[color:var(--ink)]">
             {year}年{mon}月
           </p>
         </div>
         <Link
           href={`?warehouse=${whId}&view=month&month=${nextMonth(year, mon)}`}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
         >
           <ChevronRight className="h-4 w-4" strokeWidth={2} />
         </Link>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {targetWarehouses.map((wh) => (
           <WarehouseMonthGrid
             key={wh.id}
@@ -549,20 +545,20 @@ function WarehouseMonthGrid({
   return (
     <section>
       {/* 拠点ヘッダー */}
-      <div className="mb-2 flex items-center gap-2 px-1">
-        <span className="h-4 w-1 rounded-full bg-[color:var(--accent)]" />
-        <h2 className="text-[14px] font-semibold tracking-tight text-[color:var(--ink)]">
-          {warehouse.name}
+      <div className="mb-1.5 flex items-center gap-1.5 px-1">
+        <span className="h-3.5 w-1 rounded-full bg-[color:var(--accent)]" />
+        <h2 className="text-[13px] font-semibold tracking-tight text-[color:var(--ink)]">
+          {warehouse.name.replace("物流倉庫", "")}
         </h2>
         <span className="text-[11px] text-[color:var(--ink-3)]">
-          （{staffs.length}名）
+          ({staffs.length}名)
         </span>
       </div>
 
-      <div className="rounded-2xl border border-[color:var(--line-strong)] bg-[color:var(--surface)] shadow-[var(--shadow-sm)]">
+      <div className="border-y border-[color:var(--line-strong)] bg-[color:var(--surface)]">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <thead className="sticky top-[4.5rem] z-20">
+            <thead>
               <tr className="border-b-2 border-[color:var(--line-strong)] bg-[color:var(--bg)]">
                 <th className="sticky left-0 z-30 w-20 border-r border-[color:var(--line-strong)] bg-[color:var(--bg)] pl-1.5 pr-1 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[color:var(--ink-3)]" />
 
