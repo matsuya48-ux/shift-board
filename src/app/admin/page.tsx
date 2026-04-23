@@ -38,18 +38,7 @@ export default async function AdminPage() {
   return (
     <AppShell>
       <div
-        style={{
-          width: "100%",
-          maxWidth: "36rem",
-          marginLeft: "auto",
-          marginRight: "auto",
-          paddingLeft: "2rem",
-          paddingRight: "2rem",
-          paddingTop: "1.75rem",
-          paddingBottom: "2rem",
-          boxSizing: "border-box",
-        }}
-        className="animate-rise"
+        className="mx-auto w-full px-4 pb-8 pt-6 sm:px-6 md:px-8 landscape:px-6 sm:max-w-2xl animate-rise"
       >
         <Link
           href="/dashboard"

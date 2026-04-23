@@ -35,18 +35,7 @@ export default async function AnnouncementsPage() {
   return (
     <AppShell>
       <div
-        style={{
-          width: "100%",
-          maxWidth: "32rem",
-          marginLeft: "auto",
-          marginRight: "auto",
-          paddingLeft: "2.25rem",
-          paddingRight: "2.25rem",
-          paddingTop: "1.75rem",
-          paddingBottom: "2rem",
-          boxSizing: "border-box",
-        }}
-        className="animate-rise"
+        className="mx-auto w-full px-4 pb-8 pt-6 sm:px-6 md:px-8 landscape:px-6 sm:max-w-2xl animate-rise"
       >
         <Link
           href="/admin"
