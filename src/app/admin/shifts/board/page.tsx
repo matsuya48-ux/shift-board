@@ -117,7 +117,7 @@ export default async function ShiftBoardPage({
   return (
     <AppShell>
       <div
-        className="mx-auto w-full px-2 pb-8 pt-6 sm:px-3 md:px-4 landscape:px-3 sm:max-w-7xl animate-rise"
+        className="mx-auto w-full px-2 pb-8 pt-6 sm:px-3 md:px-4 landscape:px-0 sm:max-w-7xl animate-rise"
       >
         <Link
           href="/admin/shifts"
