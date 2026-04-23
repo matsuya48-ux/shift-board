@@ -82,7 +82,7 @@ export default async function AdminTimeOffPage({
   return (
     <AppShell>
       <div
-        className="mx-auto w-full px-4 pb-8 pt-6 sm:px-6 md:px-8 landscape:px-6 sm:max-w-2xl animate-rise"
+        className="mx-auto w-full px-2 pb-8 pt-6 sm:px-3 md:px-4 landscape:px-3 sm:max-w-2xl animate-rise"
       >
         <Link
           href="/admin"
