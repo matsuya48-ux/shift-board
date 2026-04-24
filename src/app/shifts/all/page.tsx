@@ -224,7 +224,11 @@ async function DayView({
     await Promise.all([
       shiftsQuery,
       patternsQuery,
-      supabase.from("staffs").select("id, display_name").eq("is_active", true),
+      supabase
+        .from("staffs")
+        .select("id, display_name")
+        .eq("is_active", true)
+        .eq("role", "staff"),
     ]);
 
   const patterns = (patternsRaw ?? []) as PatternRow[];
@@ -232,7 +236,10 @@ async function DayView({
   const staffMap = new Map(
     (staffsRaw ?? []).map((s) => [s.id as string, s.display_name as string]),
   );
-  const shifts = (shiftsRaw ?? []) as ShiftRow[];
+  // 管理者のシフトは全員ビューに載せない
+  const shifts = ((shiftsRaw ?? []) as ShiftRow[]).filter((s) =>
+    staffMap.has(s.staff_id),
+  );
 
   const sorted = shifts
     .map((s) => {
@@ -383,6 +390,7 @@ async function MonthView({
         targetWarehouses.map((w) => w.id),
       )
       .eq("is_active", true)
+      .eq("role", "staff")
       .order("display_name"),
     supabase
       .from("warehouse_weekday_labels")
@@ -414,8 +422,12 @@ async function MonthView({
 
   const patterns = (patternsRaw ?? []) as PatternRow[];
   const patternMap = new Map(patterns.map((p) => [p.id, p]));
-  const shifts = (shiftsRaw ?? []) as ShiftRow[];
   const staffs = (staffsRaw ?? []) as Staff[];
+  // 管理者はシフト一覧に載せないので、スタッフIDに含まれないシフトは除外
+  const staffIdSet = new Set(staffs.map((s) => s.id));
+  const shifts = ((shiftsRaw ?? []) as ShiftRow[]).filter((s) =>
+    staffIdSet.has(s.staff_id),
+  );
   const weekdayLabels = (weekdayLabelsRaw ?? []) as WeekdayLabel[];
   const events = (eventsRaw ?? []) as WarehouseEvent[];
   const overrides = (overridesRaw ?? []) as DateLabelOverride[];
