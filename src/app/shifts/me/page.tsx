@@ -2,17 +2,17 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { requireStaff } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Info, Pencil } from "lucide-react";
 import {
   summarize,
   weekRange,
   monthRange,
   toISODate,
   fmtHours,
-  shiftHours,
   type ShiftRow,
   type PatternRow,
 } from "@/lib/hours";
+import { ShiftHistoryList } from "./_components/ShiftHistoryList";
 
 export default async function MyShiftsPage({
   searchParams,
@@ -174,70 +174,37 @@ export default async function MyShiftsPage({
           </Link>
         </div>
 
-        {/* 一覧 */}
+        {/* 使い方案内：実働の修正 */}
         <section className="mt-8">
+          <div className="mb-4 flex items-start gap-3 rounded-2xl bg-[color:var(--accent-soft)] p-4">
+            <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--accent)]">
+              <Info className="h-3 w-3 text-white" strokeWidth={2.5} />
+            </div>
+            <div className="space-y-1.5 text-[12px] leading-relaxed">
+              <p className="font-semibold text-[color:var(--ink)]">
+                予定と違う働き方をした日は記録できます
+              </p>
+              <p className="text-[color:var(--ink-2)]">
+                下のシフト一覧で過去・今日の項目に
+                <span className="mx-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--bg)] align-middle text-[color:var(--ink-3)]">
+                  <Pencil className="h-2.5 w-2.5" strokeWidth={1.8} />
+                </span>
+                マークが付いています。タップで実働の開始・終了・休憩を入力できます。
+              </p>
+              <p className="text-[color:var(--ink-3)]">
+                予定通りなら何もしなくてOK。記録すると一覧に
+                <span className="mx-0.5 rounded-full bg-[color:var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-semibold text-[color:var(--accent)]">
+                  実働済
+                </span>
+                バッジが付き、上の「今週・今月」集計にも反映されます。
+              </p>
+            </div>
+          </div>
+
           <h2 className="mb-3 px-1 text-[13px] font-semibold text-[color:var(--ink-2)]">
             シフト一覧
           </h2>
-          {monthShifts.length === 0 ? (
-            <div className="rounded-2xl bg-[color:var(--surface)] p-8 text-center shadow-[var(--shadow-sm)]">
-              <p className="text-[13px] text-[color:var(--ink-3)]">
-                この月のシフトはまだありません
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {monthShifts.map((s) => {
-                const p = s.pattern_id ? patternMap.get(s.pattern_id) : null;
-                const hours = shiftHours(s, patternMap);
-                const d = new Date(`${s.work_date}T00:00:00`);
-                const wd = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
-                const isSat = d.getDay() === 6;
-                const isSun = d.getDay() === 0;
-
-                return (
-                  <div
-                    key={s.id}
-                    className="flex items-center gap-3.5 rounded-2xl bg-[color:var(--surface)] p-4 shadow-[var(--shadow-sm)]"
-                  >
-                    <div className="flex h-12 w-12 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-[color:var(--bg)]">
-                      <span className="text-[18px] font-semibold leading-none tabular-nums text-[color:var(--ink)]">
-                        {d.getDate()}
-                      </span>
-                      <span
-                        className={`mt-0.5 text-[9px] ${
-                          isSun
-                            ? "text-[color:var(--danger)]"
-                            : isSat
-                              ? "text-[#3a5a7a]"
-                              : "text-[color:var(--ink-3)]"
-                        }`}
-                      >
-                        {wd}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <p className="text-[14px] font-semibold text-[color:var(--ink)]">
-                        {p ? p.label : s.start_time?.slice(0, 5)}
-                      </p>
-                      <p className="text-[11px] text-[color:var(--ink-3)] tabular-nums">
-                        {(p ? p.start_time : s.start_time)?.slice(0, 5)} –{" "}
-                        {(p ? p.end_time : s.end_time)?.slice(0, 5)}
-                        <span className="mx-1.5">／</span>
-                        {fmtHours(hours)}h
-                      </p>
-                    </div>
-                    {p && (
-                      <span
-                        className="h-2 w-2 flex-shrink-0 rounded-full"
-                        style={{ background: p.color ?? "#6366f1" }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <ShiftHistoryList shifts={monthShifts} patterns={patterns} />
         </section>
       </div>
     </AppShell>
