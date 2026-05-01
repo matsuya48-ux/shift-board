@@ -75,6 +75,17 @@ export function isRequestPeriod(today: Date = new Date()): boolean {
 }
 
 /**
+ * ダッシュボードのリマインダーを表示すべき期間か。
+ * - 当月15日以前: 表示しない
+ * - 当月16日〜22日: 表示する（締切まで）
+ */
+export function shouldShowReminder(today: Date = new Date()): boolean {
+  const day = today.getDate();
+  if (day < 16) return false;
+  return daysUntilDeadline(today) >= 0;
+}
+
+/**
  * 互換用：旧 nextMonthRange を残す。
  */
 export function nextMonthRange(today: Date = new Date()): {
@@ -83,4 +94,9 @@ export function nextMonthRange(today: Date = new Date()): {
 } {
   const cycle = getNextCycle(today);
   return { start: cycle.start, end: cycle.end };
+}
+
+/** サイクルを 'YYYY-MM' 文字列に変換（time_off_no_requests の cycle_month 用） */
+export function cycleMonthKey(cycle: TimeOffCycle): string {
+  return cycle.start.slice(0, 7);
 }

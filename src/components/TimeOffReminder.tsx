@@ -4,26 +4,36 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getNextCycle,
   daysUntilDeadline,
+  shouldShowReminder,
+  cycleMonthKey,
 } from "@/lib/time-off-reminder";
 
 export async function TimeOffReminder({ staffId }: { staffId: string }) {
   const today = new Date();
+
+  // 月の前半（〜15日）はリマインダーを出さない（催促は16日以降）
+  if (!shouldShowReminder(today)) return null;
+
   const cycle = getNextCycle(today);
   const daysLeft = daysUntilDeadline(today);
 
-  // 締切を過ぎたら表示しない
-  if (daysLeft < 0) return null;
-
   const supabase = createAdminClient();
-  const { count } = await supabase
-    .from("time_off_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("staff_id", staffId)
-    .gte("request_date", cycle.start)
-    .lte("request_date", cycle.end);
+  const [{ count: reqCount }, { count: noReqCount }] = await Promise.all([
+    supabase
+      .from("time_off_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("staff_id", staffId)
+      .gte("request_date", cycle.start)
+      .lte("request_date", cycle.end),
+    supabase
+      .from("time_off_no_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("staff_id", staffId)
+      .eq("cycle_month", cycleMonthKey(cycle)),
+  ]);
 
-  // 既に1件以上提出済みなら表示しない
-  if ((count ?? 0) > 0) return null;
+  // 既に申請済み or 「希望なし」を登録済みなら催促しない
+  if ((reqCount ?? 0) > 0 || (noReqCount ?? 0) > 0) return null;
 
   return (
     <Link

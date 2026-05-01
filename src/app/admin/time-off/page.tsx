@@ -6,7 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import { RequestItem } from "./_components/RequestItem";
 import { ApproveAllButton } from "./_components/ApproveAllButton";
 import { UnsubmittedStaffList } from "./_components/UnsubmittedStaffList";
-import { nextMonthRange } from "@/lib/time-off-reminder";
+import {
+  getNextCycle,
+  cycleMonthKey,
+} from "@/lib/time-off-reminder";
 
 type Req = {
   id: string;
@@ -51,25 +54,41 @@ export default async function AdminTimeOffPage({
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
 
-  // 未提出スタッフ（翌月分）
-  const { start, end } = nextMonthRange();
-  const [{ data: activeStaffs }, { data: submittedIds }] = await Promise.all([
+  // 未提出スタッフ（次サイクル分）
+  const cycle = getNextCycle();
+  const cycleKey = cycleMonthKey(cycle);
+  const [
+    { data: activeStaffs },
+    { data: submittedIds },
+    { data: noRequestRows },
+  ] = await Promise.all([
     supabase
       .from("staffs")
-      .select("id, display_name, warehouses(name), warehouse_id")
+      .select("id, display_name, warehouses(name), warehouse_id, role")
       .eq("is_active", true)
       .order("display_name"),
     supabase
       .from("time_off_requests")
       .select("staff_id")
-      .gte("request_date", start)
-      .lte("request_date", end),
+      .gte("request_date", cycle.start)
+      .lte("request_date", cycle.end),
+    supabase
+      .from("time_off_no_requests")
+      .select("staff_id")
+      .eq("cycle_month", cycleKey),
   ]);
   const submittedSet = new Set(
     (submittedIds ?? []).map((r) => r.staff_id),
   );
+  const noRequestSet = new Set(
+    (noRequestRows ?? []).map((r) => r.staff_id),
+  );
+  // 管理者と「希望休なし」登録済みは未提出扱いから除外
   const unsubmitted = (activeStaffs ?? []).filter(
-    (s) => !submittedSet.has(s.id as string),
+    (s) =>
+      s.role !== "admin" &&
+      !submittedSet.has(s.id as string) &&
+      !noRequestSet.has(s.id as string),
   );
 
   const tabs = [
@@ -113,7 +132,7 @@ export default async function AdminTimeOffPage({
               warehouses: { name: string } | null;
             }[]
           }
-          monthLabel={`${new Date().getMonth() + 2 > 12 ? 1 : new Date().getMonth() + 2}月`}
+          monthLabel={`${cycle.cycleMonth}月度`}
         />
 
         {/* タブ */}

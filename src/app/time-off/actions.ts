@@ -93,3 +93,86 @@ export async function cancelTimeOffRequest(
   revalidatePath("/time-off");
   return { ok: true };
 }
+
+/**
+ * 「今回のサイクルは希望休なし」を登録する。
+ * cycleMonth は YYYY-MM 形式（例：'2026-06'）。
+ */
+export async function markNoTimeOff(
+  cycleMonth: string,
+): Promise<TimeOffActionResult> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { ok: false, message: "スタッフが選択されていません" };
+
+  if (!/^\d{4}-\d{2}$/.test(cycleMonth)) {
+    return { ok: false, message: "サイクル指定が不正です" };
+  }
+
+  const supabase = createAdminClient();
+
+  // 同サイクル内に希望休が既に登録されていれば矛盾するので警告
+  const start = `${cycleMonth}-01`;
+  const [yearStr, monStr] = cycleMonth.split("-");
+  const lastDay = new Date(
+    Number(yearStr),
+    Number(monStr),
+    0,
+  ).getDate();
+  const end = `${cycleMonth}-${String(lastDay).padStart(2, "0")}`;
+
+  const { count } = await supabase
+    .from("time_off_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("staff_id", staff.id)
+    .gte("request_date", start)
+    .lte("request_date", end);
+  if ((count ?? 0) > 0) {
+    return {
+      ok: false,
+      message:
+        "このサイクルには既に希望休が登録されています。先に取り消してから「希望なし」を登録してください。",
+    };
+  }
+
+  const { error } = await supabase
+    .from("time_off_no_requests")
+    .upsert(
+      { staff_id: staff.id, cycle_month: cycleMonth },
+      { onConflict: "staff_id,cycle_month" },
+    );
+
+  if (error) {
+    return { ok: false, message: `登録に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/time-off");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/time-off");
+  return { ok: true };
+}
+
+/**
+ * 「希望休なし」登録を取り消す。
+ */
+export async function unmarkNoTimeOff(
+  cycleMonth: string,
+): Promise<TimeOffActionResult> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { ok: false, message: "スタッフが選択されていません" };
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("time_off_no_requests")
+    .delete()
+    .eq("staff_id", staff.id)
+    .eq("cycle_month", cycleMonth);
+
+  if (error) {
+    return { ok: false, message: `取消に失敗しました: ${error.message}` };
+  }
+
+  revalidatePath("/time-off");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/time-off");
+  return { ok: true };
+}

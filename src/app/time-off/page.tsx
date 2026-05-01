@@ -6,24 +6,44 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getNextCycle,
   daysUntilDeadline,
+  cycleMonthKey,
 } from "@/lib/time-off-reminder";
 import { TimeOffForm } from "./_components/TimeOffForm";
 import { RequestList } from "./_components/RequestList";
+import { NoRequestSwitch } from "./_components/NoRequestSwitch";
 
 export default async function TimeOffPage() {
   const { staff } = await requireStaff();
   const supabase = createAdminClient();
   const cycle = getNextCycle();
   const daysLeft = daysUntilDeadline();
+  const cycleKey = cycleMonthKey(cycle);
 
-  const { data: requests } = await supabase
-    .from("time_off_requests")
-    .select("id, request_date, status, submitted_at, admin_note")
-    .eq("staff_id", staff.id)
-    .order("request_date", { ascending: true });
+  const [{ data: requests }, { count: cycleReqCount }, { data: noReq }] =
+    await Promise.all([
+      supabase
+        .from("time_off_requests")
+        .select("id, request_date, status, submitted_at, admin_note")
+        .eq("staff_id", staff.id)
+        .order("request_date", { ascending: true }),
+      supabase
+        .from("time_off_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("staff_id", staff.id)
+        .gte("request_date", cycle.start)
+        .lte("request_date", cycle.end),
+      supabase
+        .from("time_off_no_requests")
+        .select("id")
+        .eq("staff_id", staff.id)
+        .eq("cycle_month", cycleKey)
+        .maybeSingle(),
+    ]);
 
   const pendingCount =
     requests?.filter((r) => r.status === "pending").length ?? 0;
+  const noRequestMarked = !!noReq;
+  const hasCycleRequest = (cycleReqCount ?? 0) > 0;
 
   return (
     <AppShell>
@@ -62,8 +82,18 @@ export default async function TimeOffPage() {
         </div>
 
         {/* 申請フォームカード */}
-        <section className="mb-10 rounded-3xl bg-[color:var(--surface)] p-7 shadow-[var(--shadow-sm)]">
+        <section className="mb-5 rounded-3xl bg-[color:var(--surface)] p-7 shadow-[var(--shadow-sm)]">
           <TimeOffForm cycleStart={cycle.start} cycleEnd={cycle.end} />
+        </section>
+
+        {/* 希望休なしスイッチ */}
+        <section className="mb-10">
+          <NoRequestSwitch
+            cycleMonth={cycleKey}
+            cycleLabel={`${cycle.cycleMonth}月度`}
+            initialMarked={noRequestMarked}
+            hasAnyRequest={hasCycleRequest}
+          />
         </section>
 
         {/* 申請中 件数 */}
