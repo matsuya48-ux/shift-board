@@ -35,8 +35,8 @@ export async function TimeOffReminder({ staffId }: { staffId: string }) {
       </div>
       <div className="min-w-0 flex-1 space-y-0.5">
         <p className="text-[14px] font-semibold tracking-tight text-[color:var(--ink)]">
-          {cycle.startMonth}月{cycle.startDay}日〜{cycle.endMonth}月
-          {cycle.endDay}日 の希望休を申請してください
+          {cycle.cycleMonth}月度（{cycle.startMonth}月{cycle.startDay}日〜
+          {cycle.endMonth}月{cycle.endDay}日）の希望休を申請してください
         </p>
         <p className="text-[11px] text-[color:var(--ink-2)]">
           {cycle.deadlineMonth}月{cycle.deadlineDay}日 締切（あと {daysLeft} 日）

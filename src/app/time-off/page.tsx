@@ -51,8 +51,8 @@ export default async function TimeOffPage() {
           </div>
           <div className="space-y-1 text-[12px] leading-relaxed">
             <p className="font-semibold text-[color:var(--ink)]">
-              {cycle.startMonth}月{cycle.startDay}日〜{cycle.endMonth}月
-              {cycle.endDay}日 の希望休を申請してください
+              {cycle.cycleMonth}月度（{cycle.startMonth}月{cycle.startDay}日〜
+              {cycle.endMonth}月{cycle.endDay}日）の希望休を申請してください
             </p>
             <p className="text-[color:var(--ink-2)]">
               締切：{cycle.deadlineMonth}月{cycle.deadlineDay}日
