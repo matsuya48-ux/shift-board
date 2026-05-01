@@ -13,12 +13,9 @@ import {
   type ShiftRow,
   type PatternRow,
 } from "@/lib/hours";
-import {
-  resolveLabelsForDate,
-  type WeekdayLabel,
-  type DateLabelOverride,
-} from "@/lib/labels";
+import type { WeekdayLabel, DateLabelOverride } from "@/lib/labels";
 import { EventPopover } from "@/components/EventPopover";
+import { LabelPopover } from "@/components/LabelPopover";
 import { isHoliday, holidayName } from "@/lib/holidays";
 
 const WEEKDAYS_SHORT = ["日", "月", "火", "水", "木", "金", "土"];
@@ -673,7 +670,7 @@ function WarehouseMonthGrid({
               )}
 
               {/* 事業部ラベル行（例外適用） */}
-              {hasWeekdayLabels && (
+              {(hasWeekdayLabels || isAdmin) && (
                 <tr className="border-b border-[color:var(--line)] bg-[color:var(--surface)]">
                   <th
                     scope="row"
@@ -683,16 +680,19 @@ function WarehouseMonthGrid({
                   </th>
                   {days.map((d) => {
                     const dateStr = toISODate(d);
-                    const labels = resolveLabelsForDate(
-                      d,
-                      warehouse.id,
-                      weekdayLabels,
-                      overrides,
-                    );
                     const dow = d.getDay();
                     const isToday = dateStr === todayStr;
                     const holiday = isHoliday(dateStr);
                     const isOff = dow === 0 || dow === 6 || holiday;
+                    const baseForDate = weekdayLabels.filter(
+                      (l) =>
+                        l.warehouse_id === warehouse.id && l.weekday === dow,
+                    );
+                    const overridesForDate = overrides.filter(
+                      (o) =>
+                        o.warehouse_id === warehouse.id &&
+                        o.override_date === dateStr,
+                    );
                     return (
                       <td
                         key={dateStr}
@@ -704,20 +704,14 @@ function WarehouseMonthGrid({
                               : ""
                         }`}
                       >
-                        {labels.map((l, i) => (
-                          <div
-                            key={i}
-                            className="mx-auto truncate rounded px-0.5 text-[8px] font-semibold leading-tight text-white"
-                            style={{ background: l.color }}
-                            title={
-                              l.source === "added"
-                                ? `${l.label}（臨時）`
-                                : l.label
-                            }
-                          >
-                            {l.source === "added" ? `+${l.label}` : l.label}
-                          </div>
-                        ))}
+                        <LabelPopover
+                          date={dateStr}
+                          warehouseId={warehouse.id}
+                          warehouseName={warehouse.name}
+                          baseLabels={baseForDate}
+                          overrides={overridesForDate}
+                          isAdmin={isAdmin}
+                        />
                       </td>
                     );
                   })}
