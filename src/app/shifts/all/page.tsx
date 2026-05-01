@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { requireStaff, isAuthenticatedAdmin } from "@/lib/auth/admin";
+import { requireStaff } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -52,7 +52,8 @@ export default async function AllShiftsPage({
   }>;
 }) {
   const { staff } = await requireStaff();
-  const isAdmin = await isAuthenticatedAdmin();
+  // カレンダー編集は admin 役職なら即可能（PIN ゲートは /admin/* で別途）
+  const isAdmin = staff.role === "admin";
   const sp = await searchParams;
   const view = sp.view ?? "month";
   const supabase = createAdminClient();
