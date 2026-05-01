@@ -649,8 +649,15 @@ function WarehouseMonthGrid({
                         {evs.length > 0 && (
                           <EventPopover
                             date={dateStr}
-                            events={evs}
+                            events={evs.map((e) => ({
+                              id: e.id,
+                              title: e.title,
+                              description: e.description,
+                              color: e.color,
+                              event_date: e.event_date,
+                            }))}
                             warehouseName={warehouse.name}
+                            isAdmin={isAdmin}
                           />
                         )}
                       </td>

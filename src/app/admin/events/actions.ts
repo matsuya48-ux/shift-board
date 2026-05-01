@@ -46,5 +46,50 @@ export async function deleteEvent(id: string) {
 
   revalidatePath("/admin/events");
   revalidatePath("/shifts/all");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+export async function updateEvent(
+  id: string,
+  payload: {
+    event_date: string;
+    title: string;
+    description?: string | null;
+    color?: string | null;
+  },
+) {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  const title = (payload.title ?? "").trim();
+  const description =
+    typeof payload.description === "string"
+      ? payload.description.trim() || null
+      : null;
+  if (!payload.event_date || !title) {
+    return { ok: false, message: "日付とタイトルは必須です" };
+  }
+
+  const { error } = await supabase
+    .from("warehouse_events")
+    .update({
+      event_date: payload.event_date,
+      title,
+      description,
+      color: payload.color ?? "#c98579",
+    })
+    .eq("id", id);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, message: "同じ日に同じイベントが既に登録されています" };
+    }
+    return { ok: false, message: error.message };
+  }
+
+  revalidatePath("/admin/events");
+  revalidatePath("/shifts/all");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
