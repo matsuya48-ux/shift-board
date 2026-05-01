@@ -228,16 +228,21 @@ export default async function DashboardPage() {
         </section>
 
         {/* 実働編集ガイド */}
-        <p className="mb-5 px-3 text-[11px] leading-relaxed text-[color:var(--ink-3)] animate-rise">
-          予定と実働に差が出て計算し直したい場合は、下のカレンダー（または
-          <Link
-            href="/shifts/me"
-            className="underline decoration-dotted underline-offset-2 text-[color:var(--accent)] active:opacity-60"
-          >
-            自分のシフト
-          </Link>
-          ）から日付をタップして時間を編集してください。
-        </p>
+        <div className="mb-5 px-3 text-[11px] leading-relaxed text-[color:var(--ink-3)] animate-rise space-y-1">
+          <p>
+            予定と実働に差が出て計算し直したい場合は、下のカレンダー（または
+            <Link
+              href="/shifts/me"
+              className="underline decoration-dotted underline-offset-2 text-[color:var(--accent)] active:opacity-60"
+            >
+              自分のシフト
+            </Link>
+            ）から日付をタップして時間を編集してください。
+          </p>
+          <p className="text-[color:var(--ink-4)]">
+            ※実働時間はジョブカンとは自動連携していません。目安なので、実働時間の集計を気にしない方は修正不要です。
+          </p>
+        </div>
 
         {/* カレンダー（カルーセル） */}
         <section className="mb-7 animate-rise">
