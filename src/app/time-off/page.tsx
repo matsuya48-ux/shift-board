@@ -3,12 +3,18 @@ import { ArrowLeft, Info } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { requireStaff } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getNextCycle,
+  daysUntilDeadline,
+} from "@/lib/time-off-reminder";
 import { TimeOffForm } from "./_components/TimeOffForm";
 import { RequestList } from "./_components/RequestList";
 
 export default async function TimeOffPage() {
   const { staff } = await requireStaff();
   const supabase = createAdminClient();
+  const cycle = getNextCycle();
+  const daysLeft = daysUntilDeadline();
 
   const { data: requests } = await supabase
     .from("time_off_requests")
@@ -43,14 +49,21 @@ export default async function TimeOffPage() {
           <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--accent)]">
             <Info className="h-3 w-3 text-white" strokeWidth={2.5} />
           </div>
-          <p className="text-[12px] leading-relaxed text-[color:var(--ink-2)]">
-            翌月分は毎月10日までに申請してください
-          </p>
+          <div className="space-y-1 text-[12px] leading-relaxed">
+            <p className="font-semibold text-[color:var(--ink)]">
+              {cycle.startMonth}月{cycle.startDay}日〜{cycle.endMonth}月
+              {cycle.endDay}日 の希望休を申請してください
+            </p>
+            <p className="text-[color:var(--ink-2)]">
+              締切：{cycle.deadlineMonth}月{cycle.deadlineDay}日
+              {daysLeft >= 0 ? `（あと ${daysLeft} 日）` : "（締切を過ぎています）"}
+            </p>
+          </div>
         </div>
 
         {/* 申請フォームカード */}
         <section className="mb-10 rounded-3xl bg-[color:var(--surface)] p-7 shadow-[var(--shadow-sm)]">
-          <TimeOffForm />
+          <TimeOffForm cycleStart={cycle.start} cycleEnd={cycle.end} />
         </section>
 
         {/* 申請中 件数 */}

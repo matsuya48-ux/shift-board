@@ -14,7 +14,12 @@ function formatJp(iso: string) {
   return `${m}/${d}(${wd})`;
 }
 
-export function TimeOffForm() {
+type Props = {
+  cycleStart: string; // YYYY-MM-DD
+  cycleEnd: string;
+};
+
+export function TimeOffForm({ cycleStart, cycleEnd }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{
@@ -22,9 +27,13 @@ export function TimeOffForm() {
     text: string;
   } | null>(null);
 
+  // 申請可能な範囲：明日以降 かつ サイクル終了日まで
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+  // 明日 と サイクル開始日 の遅い方を min にする
+  const minDate = cycleStart > tomorrowStr ? cycleStart : tomorrowStr;
+  const maxDate = cycleEnd;
 
   // 複数日付を保持
   const [dates, setDates] = useState<string[]>([]);
@@ -33,7 +42,14 @@ export function TimeOffForm() {
   function addDate() {
     if (!draft) return;
     if (draft < minDate) {
-      setMessage({ type: "error", text: "明日以降の日付を選んでください" });
+      setMessage({ type: "error", text: "申請対象期間内の日付を選んでください" });
+      return;
+    }
+    if (draft > maxDate) {
+      setMessage({
+        type: "error",
+        text: "今回のサイクル外です。次回サイクル開始後に再度申請してください",
+      });
       return;
     }
     if (dates.includes(draft)) {
@@ -88,12 +104,16 @@ export function TimeOffForm() {
           className="mb-2 block text-[12px] font-medium text-[color:var(--ink-2)]"
         >
           休みたい日（複数選択可）
+          <span className="ml-1 text-[10px] font-normal text-[color:var(--ink-3)]">
+            {formatJp(cycleStart)} 〜 {formatJp(cycleEnd)}
+          </span>
         </label>
         <div className="flex items-stretch gap-2">
           <input
             id="request_date"
             type="date"
             min={minDate}
+            max={maxDate}
             disabled={isPending}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

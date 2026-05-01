@@ -2,29 +2,28 @@ import Link from "next/link";
 import { CalendarHeart, ChevronRight } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  isRequestPeriod,
-  nextMonthRange,
+  getNextCycle,
+  daysUntilDeadline,
 } from "@/lib/time-off-reminder";
 
 export async function TimeOffReminder({ staffId }: { staffId: string }) {
   const today = new Date();
-  if (!isRequestPeriod(today)) return null;
+  const cycle = getNextCycle(today);
+  const daysLeft = daysUntilDeadline(today);
 
-  const { start, end } = nextMonthRange(today);
+  // 締切を過ぎたら表示しない
+  if (daysLeft < 0) return null;
 
   const supabase = createAdminClient();
   const { count } = await supabase
     .from("time_off_requests")
     .select("*", { count: "exact", head: true })
     .eq("staff_id", staffId)
-    .gte("request_date", start)
-    .lte("request_date", end);
+    .gte("request_date", cycle.start)
+    .lte("request_date", cycle.end);
 
   // 既に1件以上提出済みなら表示しない
   if ((count ?? 0) > 0) return null;
-
-  const [y, m] = start.split("-").map(Number);
-  const deadline = `${today.getMonth() + 1}月10日`;
 
   return (
     <Link
@@ -36,10 +35,11 @@ export async function TimeOffReminder({ staffId }: { staffId: string }) {
       </div>
       <div className="min-w-0 flex-1 space-y-0.5">
         <p className="text-[14px] font-semibold tracking-tight text-[color:var(--ink)]">
-          {y}年{m}月分の希望休を申請してください
+          {cycle.startMonth}月{cycle.startDay}日〜{cycle.endMonth}月
+          {cycle.endDay}日 の希望休を申請してください
         </p>
         <p className="text-[11px] text-[color:var(--ink-2)]">
-          締切：{deadline}まで・まだ未提出です
+          {cycle.deadlineMonth}月{cycle.deadlineDay}日 締切（あと {daysLeft} 日）
         </p>
       </div>
       <ChevronRight
