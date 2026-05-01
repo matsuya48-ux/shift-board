@@ -1,13 +1,13 @@
 import { toISODate } from "./hours";
 
 /**
- * シフトサイクル: カレンダー月（1日〜末日）。月末締め。
- * 締切: 申請対象月の前月末日。
+ * シフトサイクル: カレンダー月（1日〜末日）。
+ * 締切: 申請対象月の前月22日。
  *
  * 例：
- *   5月1日時点 → 申請対象「6月度（6月1日〜6月30日）」、締切 5月31日
- *   5月31日時点 → 同じく「6月度」、締切は今日
- *   6月1日時点 → 申請対象「7月度（7月1日〜7月31日）」、締切 6月30日
+ *   5月1日時点  → 申請対象「6月度（6月1日〜6月30日）」、締切 5月22日
+ *   5月22日時点 → 同じく「6月度」、締切は今日
+ *   5月23日時点 → 申請対象「7月度（7月1日〜7月31日）」、締切 6月22日
  */
 export type TimeOffCycle = {
   start: string; // YYYY-MM-DD
@@ -23,17 +23,27 @@ export type TimeOffCycle = {
   deadlineDay: number;
 };
 
+const DEADLINE_DAY = 22;
+
 /**
- * 「次のサイクル（次のカレンダー月）」を返す。
+ * 「次のサイクル（締切がまだ過ぎていないサイクル）」を返す。
+ *
+ * - 今日が当月22日以前 → 申請対象 = 翌月度、締切 = 当月22日
+ * - 今日が当月22日より後 → 申請対象 = 翌々月度、締切 = 翌月22日
  */
 export function getNextCycle(today: Date = new Date()): TimeOffCycle {
   const y = today.getFullYear();
   const m = today.getMonth(); // 0-indexed
+  const day = today.getDate();
 
-  // 申請対象月 = 翌月
-  const startDate = new Date(y, m + 1, 1);
-  const endDate = new Date(y, m + 2, 0); // 翌月の末日
-  const deadlineDate = new Date(y, m + 1, 0); // 当月の末日
+  // 締切月オフセット（当月か翌月か）
+  const deadlineMonthOffset = day <= DEADLINE_DAY ? 0 : 1;
+  // サイクル月オフセット（締切月の翌月）
+  const cycleMonthOffset = deadlineMonthOffset + 1;
+
+  const startDate = new Date(y, m + cycleMonthOffset, 1);
+  const endDate = new Date(y, m + cycleMonthOffset + 1, 0);
+  const deadlineDate = new Date(y, m + deadlineMonthOffset, DEADLINE_DAY);
 
   return {
     start: toISODate(startDate),
