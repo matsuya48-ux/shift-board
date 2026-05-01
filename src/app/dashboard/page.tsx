@@ -21,6 +21,7 @@ import {
   type ShiftRow,
   type PatternRow,
 } from "@/lib/hours";
+import { getNextCycle } from "@/lib/time-off-reminder";
 
 type MonthOffset = -1 | 0 | 1;
 
@@ -47,6 +48,7 @@ export default async function DashboardPage() {
   const isHonbu = (warehouseRow?.name ?? "").includes("本部");
 
   const now = new Date();
+  const timeOffCycle = getNextCycle(now);
 
   // 3ヶ月分の範囲
   const prev = monthRange(monthAt(now, -1));
@@ -306,7 +308,7 @@ export default async function DashboardPage() {
               <p className="mt-0.5 truncate text-[11px] text-white/70">
                 {(pendingCount ?? 0) > 0
                   ? `申請中 ${pendingCount} 件`
-                  : "翌月分は毎月10日まで"}
+                  : `翌月分は毎月${timeOffCycle.deadlineDay}日まで`}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 flex-shrink-0 opacity-70" strokeWidth={2} />
