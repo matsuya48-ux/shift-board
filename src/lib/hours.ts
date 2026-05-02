@@ -16,6 +16,8 @@ export type ShiftRow = {
   actual_break_minutes?: number | null;
   note?: string | null;
   is_published?: boolean;
+  /** 予備（△）出勤フラグ。集計から除外して △ 表示。 */
+  is_tentative?: boolean;
 };
 
 export type PatternRow = {
@@ -79,11 +81,12 @@ export function effectiveTimes(
   return null;
 }
 
-/** シフト1件の実働時間（小数時間） */
+/** シフト1件の実働時間（小数時間）。予備(△)シフトは0時間扱い。 */
 export function shiftHours(
   shift: ShiftRow,
   patterns: Map<string, PatternRow>,
 ): number {
+  if (shift.is_tentative) return 0;
   const eff = effectiveTimes(shift, patterns);
   if (!eff) return 0;
   const mins = diffMinutes(eff.start, eff.end) - eff.break_minutes;

@@ -788,7 +788,14 @@ function WarehouseMonthGrid({
                                 : ""
                           }`}
                         >
-                          {eff ? (
+                          {shift?.is_tentative ? (
+                            <span
+                              className="text-[14px] font-semibold text-[color:var(--ink-3)]"
+                              title={shift.note ?? "予備"}
+                            >
+                              △
+                            </span>
+                          ) : eff ? (
                             <div className="mx-auto w-full leading-tight">
                               <div
                                 className="rounded px-0.5 text-[9px] font-medium text-white tabular-nums"

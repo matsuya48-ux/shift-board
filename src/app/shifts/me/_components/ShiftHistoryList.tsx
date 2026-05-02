@@ -50,17 +50,19 @@ export function ShiftHistoryList({ shifts, patterns }: Props) {
           const isSat = d.getDay() === 6;
           const isSun = d.getDay() === 0;
           const isPastOrToday = s.work_date <= todayStr;
+          const isTentative = !!s.is_tentative;
 
-          // 実働編集できるのは過去 or 今日のシフトのみ
-          const Wrapper: "button" | "div" = isPastOrToday ? "button" : "div";
+          // 実働編集できるのは過去 or 今日 かつ 予備でないシフト
+          const editable = isPastOrToday && !isTentative;
+          const Wrapper: "button" | "div" = editable ? "button" : "div";
 
           return (
             <Wrapper
               key={s.id}
-              type={isPastOrToday ? "button" : undefined}
-              onClick={isPastOrToday ? () => setEditing(s) : undefined}
+              type={editable ? "button" : undefined}
+              onClick={editable ? () => setEditing(s) : undefined}
               className={`flex w-full items-center gap-3.5 rounded-2xl bg-[color:var(--surface)] p-4 text-left shadow-[var(--shadow-sm)] ${
-                isPastOrToday
+                editable
                   ? "transition-transform active:scale-[0.99]"
                   : ""
               }`}
@@ -84,23 +86,34 @@ export function ShiftHistoryList({ shifts, patterns }: Props) {
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex items-center gap-1.5">
                   <p className="truncate text-[14px] font-semibold text-[color:var(--ink)]">
-                    {p ? p.label : "フリー"}
+                    {isTentative
+                      ? `△ 予備${s.note ? `（${s.note}）` : ""}`
+                      : p
+                        ? p.label
+                        : "フリー"}
                   </p>
-                  {eff?.hasActual && (
+                  {!isTentative && eff?.hasActual && (
                     <span className="rounded-full bg-[color:var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-semibold text-[color:var(--accent)]">
                       実働済
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[color:var(--ink-3)] tabular-nums">
-                  {eff
-                    ? `${fmtTimeShort(eff.start)} – ${fmtTimeShort(eff.end)}`
-                    : "—"}
-                  <span className="mx-1.5">／</span>
-                  {fmtHours(hours)}h
-                </p>
+                {!isTentative && (
+                  <p className="text-[11px] text-[color:var(--ink-3)] tabular-nums">
+                    {eff
+                      ? `${fmtTimeShort(eff.start)} – ${fmtTimeShort(eff.end)}`
+                      : "—"}
+                    <span className="mx-1.5">／</span>
+                    {fmtHours(hours)}h
+                  </p>
+                )}
+                {isTentative && (
+                  <p className="text-[11px] text-[color:var(--ink-3)]">
+                    出勤の可能性があります
+                  </p>
+                )}
               </div>
-              {isPastOrToday ? (
+              {editable ? (
                 <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--bg)] text-[color:var(--ink-3)]">
                   <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
                 </div>

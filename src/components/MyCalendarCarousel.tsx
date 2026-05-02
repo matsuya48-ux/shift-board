@@ -260,7 +260,8 @@ function MonthCalendar({
           const timeOff = timeOffMap.get(dateStr);
           const pattern = shift?.pattern_id ? patternMap.get(shift.pattern_id) : null;
           const hours = shift ? shiftHours(shift, patternMap) : 0;
-          const clickable = shift && (isPast || isToday);
+          // 予備(△)シフトは時間がないので実働編集は無効
+          const clickable = shift && !shift.is_tentative && (isPast || isToday);
 
           const Cell = clickable ? "button" : "div";
 
@@ -340,7 +341,14 @@ function MonthCalendar({
                   );
                 })()}
               </div>
-              {shift && (() => {
+              {shift?.is_tentative ? (
+                <span
+                  className="mt-0.5 text-[16px] font-semibold leading-none text-[color:var(--ink-3)]"
+                  title={shift.note ?? "予備"}
+                >
+                  △
+                </span>
+              ) : shift ? ((() => {
                 const eff = effectiveTimes(shift, patternMap);
                 if (!eff) return null;
                 const bg = pattern?.color ?? "#6b7280";
@@ -365,7 +373,7 @@ function MonthCalendar({
                     </p>
                   </div>
                 );
-              })()}
+              })()) : null}
               {!shift && timeOff && timeOff.status !== "rejected" ? (
                 <span
                   className={`mt-0.5 rounded px-1 text-[9px] font-medium ${
