@@ -360,13 +360,27 @@ async function MonthView({
     ? warehouses
     : warehouses.filter((wh) => wh.id === whId);
 
+  // 先にスタッフを取得して、希望休クエリの条件に使う
+  const { data: staffsRaw } = await supabase
+    .from("staffs")
+    .select("id, display_name, warehouse_id")
+    .in(
+      "warehouse_id",
+      targetWarehouses.map((w) => w.id),
+    )
+    .eq("is_active", true)
+    .eq("role", "staff")
+    .order("display_name");
+
+  const targetStaffIds = (staffsRaw ?? []).map((s) => s.id as string);
+
   const [
     { data: shiftsRaw },
     { data: patternsRaw },
-    { data: staffsRaw },
     { data: weekdayLabelsRaw },
     { data: eventsRaw },
     { data: overridesRaw },
+    { data: timeOffsRaw },
   ] = await Promise.all([
     supabase
       .from("shifts")
@@ -385,16 +399,6 @@ async function MonthView({
         "warehouse_id",
         targetWarehouses.map((w) => w.id),
       ),
-    supabase
-      .from("staffs")
-      .select("id, display_name, warehouse_id")
-      .in(
-        "warehouse_id",
-        targetWarehouses.map((w) => w.id),
-      )
-      .eq("is_active", true)
-      .eq("role", "staff")
-      .order("display_name"),
     supabase
       .from("warehouse_weekday_labels")
       .select("*")
@@ -421,6 +425,15 @@ async function MonthView({
       )
       .gte("override_date", toISODate(start))
       .lte("override_date", toISODate(end)),
+    targetStaffIds.length > 0
+      ? supabase
+          .from("time_off_requests")
+          .select("staff_id, request_date, status")
+          .in("staff_id", targetStaffIds)
+          .eq("status", "approved")
+          .gte("request_date", toISODate(start))
+          .lte("request_date", toISODate(end))
+      : Promise.resolve({ data: [] }),
   ]);
 
   const patterns = (patternsRaw ?? []) as PatternRow[];
@@ -442,6 +455,11 @@ async function MonthView({
   const weekdayLabels = (weekdayLabelsRaw ?? []) as WeekdayLabel[];
   const events = (eventsRaw ?? []) as WarehouseEvent[];
   const overrides = (overridesRaw ?? []) as DateLabelOverride[];
+  const timeOffs = (timeOffsRaw ?? []) as {
+    staff_id: string;
+    request_date: string;
+    status: string;
+  }[];
 
   // 日付リスト
   const days: Date[] = [];
@@ -490,6 +508,7 @@ async function MonthView({
             )}
             overrides={overrides.filter((o) => o.warehouse_id === wh.id)}
             events={events.filter((e) => e.warehouse_id === wh.id)}
+            timeOffs={timeOffs}
             todayStr={todayStr}
             mon={mon}
             isAdmin={isAdmin}
@@ -497,7 +516,27 @@ async function MonthView({
         ))}
       </div>
 
-      <p className="mt-3 text-center text-[10px] text-[color:var(--ink-3)]">
+      {/* 凡例 */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 text-[10px] text-[color:var(--ink-3)]">
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--accent)]">
+            ●
+          </span>
+          希望休
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--ink-3)]">
+            △
+          </span>
+          出勤未定
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[10px] text-[color:var(--ink-4)]">無印</span>
+          通常休み
+        </span>
+      </div>
+
+      <p className="mt-2 text-center text-[10px] text-[color:var(--ink-3)]">
         ※ 横スクロールで月末まで表示できます
       </p>
     </>
@@ -513,6 +552,7 @@ function WarehouseMonthGrid({
   weekdayLabels,
   overrides,
   events,
+  timeOffs,
   todayStr,
   mon,
   isAdmin,
@@ -525,6 +565,7 @@ function WarehouseMonthGrid({
   weekdayLabels: WeekdayLabel[];
   overrides: DateLabelOverride[];
   events: WarehouseEvent[];
+  timeOffs: { staff_id: string; request_date: string; status: string }[];
   todayStr: string;
   mon: number;
   isAdmin: boolean;
@@ -532,6 +573,12 @@ function WarehouseMonthGrid({
   // (staff_id, work_date) → shift
   const shiftMap = new Map<string, ShiftRow>();
   shifts.forEach((s) => shiftMap.set(`${s.staff_id}_${s.work_date}`, s));
+
+  // (staff_id, work_date) → 希望休（承認済み）
+  const timeOffMap = new Map<string, true>();
+  timeOffs.forEach((t) =>
+    timeOffMap.set(`${t.staff_id}_${t.request_date}`, true),
+  );
 
   // スタッフ別: 日数, 時間
   const staffTotals = new Map<string, number>();
@@ -769,6 +816,7 @@ function WarehouseMonthGrid({
                     {days.map((d) => {
                       const dateStr = toISODate(d);
                       const shift = shiftMap.get(`${s.id}_${dateStr}`);
+                      const isTimeOff = timeOffMap.has(`${s.id}_${dateStr}`);
                       const dow = d.getDay();
                       const isToday = dateStr === todayStr;
                       const holiday = isHoliday(dateStr);
@@ -797,6 +845,13 @@ function WarehouseMonthGrid({
                               note={shift.note ?? null}
                               isAdmin={isAdmin}
                             />
+                          ) : !shift && isTimeOff ? (
+                            <span
+                              className="text-[14px] font-semibold text-[color:var(--accent)]"
+                              title="希望休（承認済み）"
+                            >
+                              ●
+                            </span>
                           ) : eff ? (
                             <div className="mx-auto w-full leading-tight">
                               <div

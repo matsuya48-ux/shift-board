@@ -161,6 +161,26 @@ export function MyCalendarCarousel({
         />
       </div>
 
+      {/* 凡例 */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 text-[10px] text-[color:var(--ink-3)]">
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--accent)]">
+            ●
+          </span>
+          希望休
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--ink-3)]">
+            △
+          </span>
+          出勤未定
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[10px] text-[color:var(--ink-4)]">無印</span>
+          通常休み
+        </span>
+      </div>
+
       {/* スケジュール情報 */}
       <div className="px-3">
         <ScheduleInfo
@@ -376,13 +396,18 @@ function MonthCalendar({
               })()) : null}
               {!shift && timeOff && timeOff.status !== "rejected" ? (
                 <span
-                  className={`mt-0.5 rounded px-1 text-[9px] font-medium ${
+                  className={`mt-0.5 text-[14px] font-semibold leading-none ${
                     timeOff.status === "approved"
-                      ? "bg-[color:var(--accent-soft)] text-[color:var(--accent)]"
-                      : "bg-[#fdf5e6] text-[color:var(--warning)]"
+                      ? "text-[color:var(--accent)]"
+                      : "text-[color:var(--warning)]"
                   }`}
+                  title={
+                    timeOff.status === "approved"
+                      ? "希望休（承認済み）"
+                      : "希望休（申請中）"
+                  }
                 >
-                  休
+                  ●
                 </span>
               ) : null}
             </Cell>
