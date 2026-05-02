@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireStaff } from "@/lib/auth/admin";
+import { getCurrentStaff } from "@/lib/staff-session";
 import { revalidatePath } from "next/cache";
 
 /** 実働時間を記録（予定と異なる場合） */
@@ -49,6 +50,72 @@ export async function updateActualShift(
 
   revalidatePath("/dashboard");
   revalidatePath("/shifts/me");
+  return { ok: true };
+}
+
+/**
+ * 予備(△)シフトを「確定シフト」に変換する。
+ * - admin role のみ
+ * - is_tentative=false にして start_time / end_time / break_minutes をセット
+ */
+export async function confirmTentativeShift(
+  id: string,
+  payload: { start_time: string; end_time: string; break_minutes: number },
+): Promise<{ ok: boolean; message?: string }> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { ok: false, message: "未ログインです" };
+  if (staff.role !== "admin") {
+    return { ok: false, message: "管理者のみ確定できます" };
+  }
+
+  if (!payload.start_time || !payload.end_time) {
+    return { ok: false, message: "開始・終了時刻を入力してください" };
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("shifts")
+    .update({
+      is_tentative: false,
+      start_time: payload.start_time,
+      end_time: payload.end_time,
+      break_minutes: payload.break_minutes ?? 0,
+    })
+    .eq("id", id)
+    .eq("is_tentative", true);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/shifts/all");
+  revalidatePath("/shifts/me");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/**
+ * 予備(△)シフトを削除する（admin のみ）。
+ */
+export async function deleteTentativeShift(
+  id: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { ok: false, message: "未ログインです" };
+  if (staff.role !== "admin") {
+    return { ok: false, message: "管理者のみ削除できます" };
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("shifts")
+    .delete()
+    .eq("id", id)
+    .eq("is_tentative", true);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/shifts/all");
+  revalidatePath("/shifts/me");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 

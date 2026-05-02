@@ -16,6 +16,7 @@ import {
 import type { WeekdayLabel, DateLabelOverride } from "@/lib/labels";
 import { EventPopover } from "@/components/EventPopover";
 import { LabelPopover } from "@/components/LabelPopover";
+import { TentativeShiftCell } from "@/components/TentativeShiftCell";
 import { isHoliday, holidayName } from "@/lib/holidays";
 
 // シフトは頻繁に更新されるので毎回最新を取りに行く
@@ -789,12 +790,13 @@ function WarehouseMonthGrid({
                           }`}
                         >
                           {shift?.is_tentative ? (
-                            <span
-                              className="text-[14px] font-semibold text-[color:var(--ink-3)]"
-                              title={shift.note ?? "予備"}
-                            >
-                              △
-                            </span>
+                            <TentativeShiftCell
+                              shiftId={shift.id}
+                              staffName={s.display_name}
+                              workDate={shift.work_date}
+                              note={shift.note ?? null}
+                              isAdmin={isAdmin}
+                            />
                           ) : eff ? (
                             <div className="mx-auto w-full leading-tight">
                               <div
