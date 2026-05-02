@@ -424,7 +424,15 @@ async function MonthView({
 
   const patterns = (patternsRaw ?? []) as PatternRow[];
   const patternMap = new Map(patterns.map((p) => [p.id, p]));
-  const staffs = (staffsRaw ?? []) as Staff[];
+  // 応援（display_name に「応援」を含む）は一覧の末尾に並べる
+  const isSupport = (s: { display_name: string }) =>
+    s.display_name.includes("応援");
+  const staffs = ((staffsRaw ?? []) as Staff[]).slice().sort((a, b) => {
+    const aSup = isSupport(a) ? 1 : 0;
+    const bSup = isSupport(b) ? 1 : 0;
+    if (aSup !== bSup) return aSup - bSup;
+    return a.display_name.localeCompare(b.display_name, "ja");
+  });
   // 管理者はシフト一覧に載せないので、スタッフIDに含まれないシフトは除外
   const staffIdSet = new Set(staffs.map((s) => s.id));
   const shifts = ((shiftsRaw ?? []) as ShiftRow[]).filter((s) =>
