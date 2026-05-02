@@ -341,7 +341,7 @@ export default async function DashboardPage() {
               <p>
                 予定と実働に差が出て計算し直したい場合、
                 <br />
-                下のカレンダーまたは
+                上のカレンダーまたは
                 <Link
                   href="/shifts/me"
                   className="font-medium text-[color:var(--accent)] underline decoration-dotted underline-offset-2 active:opacity-60"
