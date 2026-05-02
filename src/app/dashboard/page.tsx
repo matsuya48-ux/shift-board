@@ -11,6 +11,7 @@ import {
   Users,
   Settings,
   ChevronRight,
+  Info,
 } from "lucide-react";
 import {
   summarize,
@@ -329,22 +330,34 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* 実働編集ガイド・注意書き（ページ最下部） */}
-        <div className="mt-8 px-3 text-[13px] leading-relaxed text-[color:var(--ink-3)] animate-rise space-y-2">
-          <p>
-            予定と実働に差が出て計算し直したい場合は、下のカレンダー（または
-            <Link
-              href="/shifts/me"
-              className="underline decoration-dotted underline-offset-2 text-[color:var(--accent)] active:opacity-60"
-            >
-              自分のシフト
-            </Link>
-            ）から日付をタップして時間を編集してください。
-          </p>
-          <p>
-            ※実働時間はジョブカンとは自動連携していません。目安なので、実働時間の集計を気にしない方は修正不要です。
-          </p>
-        </div>
+        {/* 備考（ページ最下部） */}
+        <section className="mt-8 px-3 animate-rise">
+          <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 shadow-[var(--shadow-sm)]">
+            <div className="mb-3 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.1em] text-[color:var(--ink-3)]">
+              <Info className="h-3.5 w-3.5" strokeWidth={2} />
+              備考
+            </div>
+            <div className="space-y-3 text-[14px] leading-[1.7] text-[color:var(--ink-2)]">
+              <p>
+                予定と実働に差が出て計算し直したい場合、
+                <br className="hidden sm:inline" />
+                下のカレンダーまたは
+                <Link
+                  href="/shifts/me"
+                  className="font-medium text-[color:var(--accent)] underline decoration-dotted underline-offset-2 active:opacity-60"
+                >
+                  自分のシフト
+                </Link>
+                から日付をタップして時間を編集できます。
+              </p>
+              <p className="text-[color:var(--ink-3)]">
+                ※実働時間はジョブカンとは自動連携していません。
+                <br className="hidden sm:inline" />
+                目安として表示しているだけなので、集計を気にしない方は修正不要です。
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </AppShell>
   );
