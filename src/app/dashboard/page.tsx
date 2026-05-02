@@ -340,7 +340,7 @@ export default async function DashboardPage() {
             <div className="space-y-3 text-[14px] leading-[1.7] text-[color:var(--ink-2)]">
               <p>
                 予定と実働に差が出て計算し直したい場合、
-                <br className="hidden sm:inline" />
+                <br />
                 下のカレンダーまたは
                 <Link
                   href="/shifts/me"
@@ -352,8 +352,10 @@ export default async function DashboardPage() {
               </p>
               <p className="text-[color:var(--ink-3)]">
                 ※実働時間はジョブカンとは自動連携していません。
-                <br className="hidden sm:inline" />
-                目安として表示しているだけなので、集計を気にしない方は修正不要です。
+                <br />
+                目安として表示しているだけなので、
+                <br />
+                集計を気にしない方は修正不要です。
               </p>
             </div>
           </div>
