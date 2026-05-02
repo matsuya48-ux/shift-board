@@ -494,6 +494,26 @@ async function MonthView({
         </Link>
       </div>
 
+      {/* 凡例（カレンダー上部） */}
+      <div className="mb-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 text-[10px] text-[color:var(--ink-3)]">
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--accent)]">
+            ●
+          </span>
+          希望休
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--ink-3)]">
+            △
+          </span>
+          出勤未定
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[10px] text-[color:var(--ink-4)]">無印</span>
+          通常休み
+        </span>
+      </div>
+
       <div className="space-y-4">
         {targetWarehouses.map((wh) => (
           <WarehouseMonthGrid
@@ -516,27 +536,7 @@ async function MonthView({
         ))}
       </div>
 
-      {/* 凡例 */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 text-[10px] text-[color:var(--ink-3)]">
-        <span className="inline-flex items-center gap-1">
-          <span className="text-[14px] font-semibold leading-none text-[color:var(--accent)]">
-            ●
-          </span>
-          希望休
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="text-[14px] font-semibold leading-none text-[color:var(--ink-3)]">
-            △
-          </span>
-          出勤未定
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="text-[10px] text-[color:var(--ink-4)]">無印</span>
-          通常休み
-        </span>
-      </div>
-
-      <p className="mt-2 text-center text-[10px] text-[color:var(--ink-3)]">
+      <p className="mt-3 text-center text-[10px] text-[color:var(--ink-3)]">
         ※ 横スクロールで月末まで表示できます
       </p>
     </>

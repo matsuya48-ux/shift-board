@@ -127,7 +127,7 @@ export function MyCalendarCarousel({
       </div>
 
       {/* インジケータ */}
-      <div className="mb-4 flex items-center justify-center gap-1.5">
+      <div className="mb-3 flex items-center justify-center gap-1.5">
         {months.map((_, i) => (
           <span
             key={i}
@@ -138,6 +138,26 @@ export function MyCalendarCarousel({
             }`}
           />
         ))}
+      </div>
+
+      {/* 凡例（カレンダー上部） */}
+      <div className="mb-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 text-[10px] text-[color:var(--ink-3)]">
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--accent)]">
+            ●
+          </span>
+          希望休
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[14px] font-semibold leading-none text-[color:var(--ink-3)]">
+            △
+          </span>
+          出勤未定
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="text-[10px] text-[color:var(--ink-4)]">無印</span>
+          通常休み
+        </span>
       </div>
 
       {/* カレンダー（スワイプ対応） */}
@@ -159,26 +179,6 @@ export function MyCalendarCarousel({
           todayStr={todayStr}
           onEditShift={setEditingShift}
         />
-      </div>
-
-      {/* 凡例 */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 text-[10px] text-[color:var(--ink-3)]">
-        <span className="inline-flex items-center gap-1">
-          <span className="text-[14px] font-semibold leading-none text-[color:var(--accent)]">
-            ●
-          </span>
-          希望休
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="text-[14px] font-semibold leading-none text-[color:var(--ink-3)]">
-            △
-          </span>
-          出勤未定
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <span className="text-[10px] text-[color:var(--ink-4)]">無印</span>
-          通常休み
-        </span>
       </div>
 
       {/* スケジュール情報 */}
