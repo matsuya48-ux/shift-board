@@ -18,6 +18,10 @@ import { EventPopover } from "@/components/EventPopover";
 import { LabelPopover } from "@/components/LabelPopover";
 import { isHoliday, holidayName } from "@/lib/holidays";
 
+// シフトは頻繁に更新されるので毎回最新を取りに行く
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const WEEKDAYS_SHORT = ["日", "月", "火", "水", "木", "金", "土"];
 
 type Warehouse = {
