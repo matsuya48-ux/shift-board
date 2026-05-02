@@ -441,10 +441,10 @@ function HoursCard({
             />
           </div>
         )}
-        <p className="mt-1 text-[9px] leading-tight text-[color:var(--ink-3)] tabular-nums">
-          実 {fmtHours(actual)}
+        <p className="mt-1 text-[10px] leading-tight text-[color:var(--ink-3)] tabular-nums">
+          実働 {fmtHours(actual)}
           <span className="mx-0.5">＋</span>
-          予 {fmtHours(planned)}
+          予定 {fmtHours(planned)}
         </p>
       </div>
     </div>

@@ -154,7 +154,7 @@ export default async function StaffShiftEditorPage({
               )}
             </p>
             <p className="mt-1.5 text-[10px] text-[color:var(--ink-3)]">
-              実 {fmtHours(weekSummary.actual)} + 予 {fmtHours(weekSummary.planned)}
+              実働 {fmtHours(weekSummary.actual)} + 予定 {fmtHours(weekSummary.planned)}
             </p>
           </div>
           <div className="rounded-2xl bg-[color:var(--surface)] p-4 shadow-[var(--shadow-sm)]">
@@ -168,7 +168,7 @@ export default async function StaffShiftEditorPage({
               <span className="text-[11px] text-[color:var(--ink-3)]">h</span>
             </p>
             <p className="mt-1.5 text-[10px] text-[color:var(--ink-3)]">
-              実 {fmtHours(monthSummary.actual)} + 予 {fmtHours(monthSummary.planned)}
+              実働 {fmtHours(monthSummary.actual)} + 予定 {fmtHours(monthSummary.planned)}
             </p>
           </div>
         </div>
