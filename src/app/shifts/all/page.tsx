@@ -747,9 +747,23 @@ function WarehouseMonthGrid({
                   >
                     <th
                       scope="row"
-                      className="sticky left-0 z-10 w-20 truncate border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] px-1 py-1.5 text-center text-[12px] font-medium text-[color:var(--ink)]"
+                      className="sticky left-0 z-10 w-20 border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] px-1 py-1.5 text-center text-[12px] font-medium text-[color:var(--ink)]"
                     >
-                      {s.display_name.split(/\s+/)[0]}
+                      {(() => {
+                        const firstWord = s.display_name.split(/\s+/)[0];
+                        const m = firstWord.match(/^(.+?)(（応援）)$/);
+                        if (m) {
+                          return (
+                            <>
+                              <span className="block leading-tight">{m[1]}</span>
+                              <span className="block text-[9px] font-normal leading-tight text-[color:var(--ink-3)]">
+                                {m[2]}
+                              </span>
+                            </>
+                          );
+                        }
+                        return firstWord;
+                      })()}
                     </th>
                     {days.map((d) => {
                       const dateStr = toISODate(d);
