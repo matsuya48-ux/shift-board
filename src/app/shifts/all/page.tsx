@@ -677,15 +677,14 @@ function WarehouseMonthGrid({
                 )}
               </tr>
 
-              {/* イベント行 */}
-              {hasEvents && (
-                <tr className="border-b border-[color:var(--line)] bg-white">
-                  <th
-                    scope="row"
-                    className="sticky left-0 z-10 w-20 whitespace-nowrap border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
-                  >
-                    イベ
-                  </th>
+              {/* イベント行（常時表示） */}
+              <tr className="border-b border-[color:var(--line)] bg-white">
+                <th
+                  scope="row"
+                  className="sticky left-0 z-10 w-20 whitespace-nowrap border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
+                >
+                  イベ
+                </th>
                   {days.map((d) => {
                     const dateStr = toISODate(d);
                     const evs = eventByDate.get(dateStr) ?? [];
@@ -728,7 +727,6 @@ function WarehouseMonthGrid({
                     </>
                   )}
                 </tr>
-              )}
 
               {/* 出荷ラベル行：本部のみ（ECは事業部の概念がなく、イベ行で十分） */}
               {warehouse.name.includes("本部") &&
