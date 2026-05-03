@@ -730,14 +730,15 @@ function WarehouseMonthGrid({
                 </tr>
               )}
 
-              {/* 事業部ラベル行（例外適用） */}
-              {(hasWeekdayLabels || isAdmin) && (
+              {/* 出荷ラベル行：本部のみ（ECは事業部の概念がなく、イベ行で十分） */}
+              {warehouse.name.includes("本部") &&
+                (hasWeekdayLabels || isAdmin) && (
                 <tr className="border-b border-[color:var(--line)] bg-[color:var(--surface)]">
                   <th
                     scope="row"
                     className="sticky left-0 z-10 w-20 whitespace-nowrap border-r border-[color:var(--line-strong)] bg-[color:var(--surface)] pl-1.5 pr-1 py-1.5 text-left text-[10px] font-medium text-[color:var(--ink-3)]"
                   >
-                    {warehouse.name.includes("本部") ? "出荷" : "事業部"}
+                    出荷
                   </th>
                   {days.map((d) => {
                     const dateStr = toISODate(d);
