@@ -385,7 +385,7 @@ function HoursCard({
   const ratio = limit ? Math.min(100, (total / limit) * 100) : 0;
 
   return (
-    <div className="flex items-stretch gap-2.5 rounded-2xl bg-[color:var(--surface)] py-2 pl-4 pr-4 shadow-[var(--shadow-sm)]">
+    <div className="flex items-stretch gap-2.5 rounded-2xl bg-[color:var(--surface)] py-4 pl-4 pr-4 shadow-[var(--shadow-sm)]">
       {/* 左側のアクセント */}
       <div
         className={`w-1 flex-shrink-0 rounded-full ${
@@ -393,45 +393,48 @@ function HoursCard({
         }`}
       />
       <div className="min-w-0 flex-1">
-        {/* ラベルと数値を1行に並べて高さを圧縮 */}
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-[11px] font-medium text-[color:var(--ink-3)]">
+          <p className="text-[12px] font-medium text-[color:var(--ink-3)]">
             {label}
           </p>
-          <p className="flex items-baseline gap-0.5 tabular-nums">
+          {limit && (
             <span
-              className={`text-[17px] font-semibold leading-none tracking-tight ${
+              className={`text-[11px] font-medium tabular-nums ${
                 overLimit
                   ? "text-[color:var(--danger)]"
-                  : "text-[color:var(--ink)]"
+                  : "text-[color:var(--ink-3)]"
               }`}
             >
-              {fmtHours(total)}
+              / {limit}h
             </span>
-            <span className="text-[10px] text-[color:var(--ink-3)]">h</span>
-            {days !== undefined && (
-              <>
-                <span className="ml-1.5 text-[17px] font-semibold leading-none tracking-tight text-[color:var(--ink)]">
-                  {days}
-                </span>
-                <span className="text-[10px] text-[color:var(--ink-3)]">日</span>
-              </>
-            )}
-            {limit && (
-              <span
-                className={`ml-1.5 text-[9px] font-medium ${
-                  overLimit
-                    ? "text-[color:var(--danger)]"
-                    : "text-[color:var(--ink-3)]"
-                }`}
-              >
-                /{limit}h
-              </span>
-            )}
-          </p>
+          )}
         </div>
+        <p className="mt-1.5 flex items-baseline gap-0.5 tabular-nums">
+          <span
+            className={`text-[28px] font-semibold leading-none tracking-tight ${
+              overLimit
+                ? "text-[color:var(--danger)]"
+                : "text-[color:var(--ink)]"
+            }`}
+          >
+            {fmtHours(total)}
+          </span>
+          <span className="text-[13px] font-medium text-[color:var(--ink-3)]">
+            h
+          </span>
+          {days !== undefined && (
+            <>
+              <span className="ml-3 text-[28px] font-semibold leading-none tracking-tight text-[color:var(--ink)]">
+                {days}
+              </span>
+              <span className="text-[13px] font-medium text-[color:var(--ink-3)]">
+                日
+              </span>
+            </>
+          )}
+        </p>
         {limit && (
-          <div className="mt-1 h-0.5 overflow-hidden rounded-full bg-[color:var(--bg)]">
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
             <div
               className={`h-full rounded-full transition-all ${
                 overLimit
@@ -442,7 +445,7 @@ function HoursCard({
             />
           </div>
         )}
-        <p className="mt-1 text-[10px] leading-tight text-[color:var(--ink-3)] tabular-nums">
+        <p className="mt-2 text-[11px] leading-tight text-[color:var(--ink-3)] tabular-nums">
           実働 {fmtHours(actual)}
           <span className="mx-0.5">＋</span>
           予定 {fmtHours(planned)}
