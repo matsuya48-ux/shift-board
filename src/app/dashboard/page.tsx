@@ -253,6 +253,7 @@ export default async function DashboardPage() {
             todayStr={todayStr}
             warehouseId={staff.warehouse_id}
             isHonbu={isHonbu}
+            isAdmin={staff.role === "admin"}
           />
         </section>
 

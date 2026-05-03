@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { X, Loader2, RotateCcw, Check } from "lucide-react";
+import { X, Loader2, RotateCcw, Check, Pencil } from "lucide-react";
 import {
   effectiveTimes,
   fmtTime,
@@ -11,20 +11,27 @@ import {
   type ShiftRow,
   type PatternRow,
 } from "@/lib/hours";
-import { updateActualShift, clearActualShift } from "@/app/shifts/actions";
+import {
+  updateActualShift,
+  clearActualShift,
+  updatePlannedShift,
+} from "@/app/shifts/actions";
 
 export function ActualShiftModal({
   shift,
   patterns,
   onClose,
+  isAdmin = false,
 }: {
   shift: ShiftRow;
   patterns: Map<string, PatternRow>;
   onClose: () => void;
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [editingPlanned, setEditingPlanned] = useState(false);
 
   const pattern = shift.pattern_id ? patterns.get(shift.pattern_id) : null;
   const plannedStart = pattern?.start_time ?? shift.start_time ?? "";
@@ -37,6 +44,11 @@ export function ActualShiftModal({
 
   const eff = effectiveTimes(shift, patterns);
   const hasActual = !!eff?.hasActual;
+
+  // 予定編集フォーム用 state
+  const [pStart, setPStart] = useState(fmtTime(plannedStart));
+  const [pEnd, setPEnd] = useState(fmtTime(plannedEnd));
+  const [pBreak, setPBreak] = useState(plannedBreak);
 
   const [year, mon, day] = shift.work_date.split("-").map(Number);
   const dateObj = new Date(year, mon - 1, day);
@@ -65,6 +77,24 @@ export function ActualShiftModal({
         onClose();
       } else {
         setError(result.message ?? "エラーが発生しました");
+      }
+    });
+  }
+
+  function handleSavePlanned() {
+    setError(null);
+    startTransition(async () => {
+      const result = await updatePlannedShift(shift.id, {
+        start_time: pStart,
+        end_time: pEnd,
+        break_minutes: pBreak,
+      });
+      if (result.ok) {
+        setEditingPlanned(false);
+        router.refresh();
+        onClose();
+      } else {
+        setError(result.message ?? "予定の保存に失敗しました");
       }
     });
   }
@@ -98,17 +128,110 @@ export function ActualShiftModal({
 
         {/* 予定 */}
         <div className="mb-5 rounded-2xl bg-white p-4 shadow-[var(--shadow-sm)]">
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.1em] text-[color:var(--ink-3)]">
-            Planned / 予定
-          </p>
-          <div className="flex items-baseline justify-between">
-            <p className="text-[16px] font-semibold tabular-nums text-[color:var(--ink)]">
-              {fmtTime(plannedStart)} – {fmtTime(plannedEnd)}
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-[color:var(--ink-3)]">
+              Planned / 予定
+              {pattern && !editingPlanned && (
+                <span className="ml-1.5 normal-case tracking-normal text-[color:var(--ink-2)]">
+                  {pattern.label}
+                </span>
+              )}
             </p>
-            <p className="text-[11px] tabular-nums text-[color:var(--ink-3)]">
-              休憩 {plannedBreak}分・{fmtHours(plannedHours)}h
-            </p>
+            {isAdmin && !editingPlanned && (
+              <button
+                type="button"
+                onClick={() => setEditingPlanned(true)}
+                className="flex items-center gap-1 rounded-full bg-[color:var(--bg)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--ink-2)] active:scale-95"
+              >
+                <Pencil className="h-3 w-3" strokeWidth={2} />
+                予定を編集
+              </button>
+            )}
           </div>
+
+          {editingPlanned ? (
+            <div className="space-y-3">
+              <p className="text-[11px] leading-relaxed text-[color:var(--ink-3)]">
+                {pattern
+                  ? "時刻を変更するとパターン適用は解除されてフリー入力になります。"
+                  : "開始・終了・休憩を入力してください。"}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-[color:var(--ink-2)]">
+                    開始
+                  </label>
+                  <input
+                    type="time"
+                    value={pStart}
+                    onChange={(e) => setPStart(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-[color:var(--line)] bg-white px-2.5 text-[13px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-[color:var(--ink-2)]">
+                    終了
+                  </label>
+                  <input
+                    type="time"
+                    value={pEnd}
+                    onChange={(e) => setPEnd(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-[color:var(--line)] bg-white px-2.5 text-[13px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-[color:var(--ink-2)]">
+                    休憩
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={300}
+                    value={pBreak}
+                    onChange={(e) => setPBreak(Number(e.target.value) || 0)}
+                    className="h-10 w-full rounded-xl border border-[color:var(--line)] bg-white px-2.5 text-[13px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleSavePlanned}
+                  disabled={isPending || !pStart || !pEnd}
+                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[color:var(--accent)] text-[12px] font-medium text-white active:scale-95 disabled:bg-[color:var(--ink-4)]"
+                >
+                  {isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  )}
+                  予定を保存
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingPlanned(false);
+                    setPStart(fmtTime(plannedStart));
+                    setPEnd(fmtTime(plannedEnd));
+                    setPBreak(plannedBreak);
+                  }}
+                  disabled={isPending}
+                  className="h-10 rounded-full bg-[color:var(--bg)] px-4 text-[12px] font-medium text-[color:var(--ink-3)] active:scale-95"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-baseline justify-between">
+              <p className="text-[16px] font-semibold tabular-nums text-[color:var(--ink)]">
+                {fmtTime(plannedStart)} – {fmtTime(plannedEnd)}
+              </p>
+              <p className="text-[11px] tabular-nums text-[color:var(--ink-3)]">
+                休憩 {plannedBreak}分・{fmtHours(plannedHours)}h
+              </p>
+            </div>
+          )}
         </div>
 
         <form action={handleSubmit} className="space-y-4">

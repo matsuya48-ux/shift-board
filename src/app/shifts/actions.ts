@@ -119,6 +119,44 @@ export async function deleteTentativeShift(
   return { ok: true };
 }
 
+/**
+ * 予定（Planned）シフトを編集する。
+ * - admin role のみ
+ * - 時刻を変更するとパターン適用は解除されてフリー入力に切り替わる
+ */
+export async function updatePlannedShift(
+  id: string,
+  payload: { start_time: string; end_time: string; break_minutes: number },
+): Promise<{ ok: boolean; message?: string }> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { ok: false, message: "未ログインです" };
+  if (staff.role !== "admin") {
+    return { ok: false, message: "管理者のみ編集できます" };
+  }
+
+  if (!payload.start_time || !payload.end_time) {
+    return { ok: false, message: "開始・終了時刻を入力してください" };
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("shifts")
+    .update({
+      pattern_id: null, // パターンから外してフリー入力に
+      start_time: payload.start_time,
+      end_time: payload.end_time,
+      break_minutes: payload.break_minutes ?? 0,
+    })
+    .eq("id", id);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/shifts/me");
+  revalidatePath("/shifts/all");
+  return { ok: true };
+}
+
 /** 実働記録をクリア（= 予定通りに戻す） */
 export async function clearActualShift(
   id: string,

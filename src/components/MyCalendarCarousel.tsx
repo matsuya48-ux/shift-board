@@ -48,6 +48,7 @@ type Props = {
   todayStr: string;
   warehouseId: string;
   isHonbu?: boolean;
+  isAdmin?: boolean;
 };
 
 const WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"];
@@ -60,6 +61,7 @@ export function MyCalendarCarousel({
   todayStr,
   warehouseId,
   isHonbu = false,
+  isAdmin = false,
 }: Props) {
   const [index, setIndex] = useState(1); // 1 = 今月
   const [editingShift, setEditingShift] = useState<ShiftRow | null>(null);
@@ -178,6 +180,7 @@ export function MyCalendarCarousel({
           patternMap={patternMap}
           todayStr={todayStr}
           onEditShift={setEditingShift}
+          isAdmin={isAdmin}
         />
       </div>
 
@@ -192,12 +195,13 @@ export function MyCalendarCarousel({
         />
       </div>
 
-      {/* 実働修正モーダル */}
+      {/* 実働・予定編集モーダル */}
       {editingShift && (
         <ActualShiftModal
           shift={editingShift}
           patterns={patternMap}
           onClose={() => setEditingShift(null)}
+          isAdmin={isAdmin}
         />
       )}
     </div>
@@ -216,6 +220,7 @@ function MonthCalendar({
   patternMap,
   todayStr,
   onEditShift,
+  isAdmin,
 }: {
   year: number;
   month: number;
@@ -228,6 +233,7 @@ function MonthCalendar({
   patternMap: Map<string, PatternRow>;
   todayStr: string;
   onEditShift: (s: ShiftRow) => void;
+  isAdmin: boolean;
 }) {
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
@@ -280,8 +286,10 @@ function MonthCalendar({
           const timeOff = timeOffMap.get(dateStr);
           const pattern = shift?.pattern_id ? patternMap.get(shift.pattern_id) : null;
           const hours = shift ? shiftHours(shift, patternMap) : 0;
-          // 予備(△)シフトは時間がないので実働編集は無効
-          const clickable = shift && !shift.is_tentative && (isPast || isToday);
+          // 予備(△)シフトは時間がないので実働編集は無効。
+          // admin は未来のシフトもタップで予定編集できる。
+          const clickable =
+            shift && !shift.is_tentative && (isAdmin || isPast || isToday);
 
           const Cell = clickable ? "button" : "div";
 

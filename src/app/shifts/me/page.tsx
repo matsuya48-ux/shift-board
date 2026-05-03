@@ -204,7 +204,11 @@ export default async function MyShiftsPage({
           <h2 className="mb-3 px-1 text-[13px] font-semibold text-[color:var(--ink-2)]">
             シフト一覧
           </h2>
-          <ShiftHistoryList shifts={monthShifts} patterns={patterns} />
+          <ShiftHistoryList
+            shifts={monthShifts}
+            patterns={patterns}
+            isAdmin={staff.role === "admin"}
+          />
         </section>
       </div>
     </AppShell>

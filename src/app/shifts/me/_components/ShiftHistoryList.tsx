@@ -16,11 +16,12 @@ import {
 type Props = {
   shifts: ShiftRow[];
   patterns: PatternRow[];
+  isAdmin?: boolean;
 };
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
-export function ShiftHistoryList({ shifts, patterns }: Props) {
+export function ShiftHistoryList({ shifts, patterns, isAdmin = false }: Props) {
   const patternMap = useMemo(
     () => new Map(patterns.map((p) => [p.id, p])),
     [patterns],
@@ -52,8 +53,10 @@ export function ShiftHistoryList({ shifts, patterns }: Props) {
           const isPastOrToday = s.work_date <= todayStr;
           const isTentative = !!s.is_tentative;
 
-          // 実働編集できるのは過去 or 今日 かつ 予備でないシフト
-          const editable = isPastOrToday && !isTentative;
+          // 実働編集できるのは過去 or 今日 かつ 予備でないシフト。
+          // admin は未来のシフトも予定編集できる。
+          const editable =
+            !isTentative && (isAdmin || isPastOrToday);
           const Wrapper: "button" | "div" = editable ? "button" : "div";
 
           return (
@@ -135,6 +138,7 @@ export function ShiftHistoryList({ shifts, patterns }: Props) {
           shift={editing}
           patterns={patternMap}
           onClose={() => setEditing(null)}
+          isAdmin={isAdmin}
         />
       )}
     </>
