@@ -163,6 +163,7 @@ export function ActualShiftModal({
                   </label>
                   <input
                     type="time"
+                    step={60}
                     value={pStart}
                     onChange={(e) => setPStart(e.target.value)}
                     className="h-10 w-full rounded-xl border border-[color:var(--line)] bg-white px-2.5 text-[13px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
@@ -174,6 +175,7 @@ export function ActualShiftModal({
                   </label>
                   <input
                     type="time"
+                    step={60}
                     value={pEnd}
                     onChange={(e) => setPEnd(e.target.value)}
                     className="h-10 w-full rounded-xl border border-[color:var(--line)] bg-white px-2.5 text-[13px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-soft)]"
@@ -251,6 +253,7 @@ export function ActualShiftModal({
               <input
                 name="actual_start_time"
                 type="time"
+                step={60}
                 required
                 defaultValue={fmtTime(
                   shift.actual_start_time ?? plannedStart,
@@ -265,6 +268,7 @@ export function ActualShiftModal({
               <input
                 name="actual_end_time"
                 type="time"
+                step={60}
                 required
                 defaultValue={fmtTime(
                   shift.actual_end_time ?? plannedEnd,

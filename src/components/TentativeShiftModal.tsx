@@ -117,6 +117,7 @@ export function TentativeShiftModal({
             </label>
             <input
               type="time"
+              step={60}
               value={start}
               onChange={(e) => setStart(e.target.value)}
               className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3 text-[14px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
@@ -128,6 +129,7 @@ export function TentativeShiftModal({
             </label>
             <input
               type="time"
+              step={60}
               value={end}
               onChange={(e) => setEnd(e.target.value)}
               className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3 text-[14px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"

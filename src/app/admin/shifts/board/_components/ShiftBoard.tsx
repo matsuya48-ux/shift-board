@@ -642,6 +642,7 @@ function CellEditModal({
                 <input
                   name="start_time"
                   type="time"
+                  step={60}
                   required={mode === "free"}
                   defaultValue={
                     shift?.start_time?.slice(0, 5) ??
@@ -658,6 +659,7 @@ function CellEditModal({
                 <input
                   name="end_time"
                   type="time"
+                  step={60}
                   required={mode === "free"}
                   defaultValue={
                     shift?.end_time?.slice(0, 5) ??

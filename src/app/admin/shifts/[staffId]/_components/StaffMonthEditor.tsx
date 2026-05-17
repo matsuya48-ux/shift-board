@@ -399,6 +399,7 @@ function EditModal({
                 <input
                   name="start_time"
                   type="time"
+                  step={60}
                   required={mode === "free"}
                   defaultValue={
                     existing?.start_time?.slice(0, 5) ??
@@ -415,6 +416,7 @@ function EditModal({
                 <input
                   name="end_time"
                   type="time"
+                  step={60}
                   required={mode === "free"}
                   defaultValue={
                     existing?.end_time?.slice(0, 5) ??
