@@ -118,8 +118,8 @@ export default async function AdminPage() {
         <section className="space-y-3">
           <SecondaryMenuCard
             href="/admin/remote"
-            title="リモート作業報告"
-            subtitle="スタッフ別の業務件数・1時間あたり件数を集計"
+            title="リモート作業分析"
+            subtitle="スタッフ別・業務別の件数と件/hを集計／可視化"
             Icon={Laptop}
           />
           <SecondaryMenuCard

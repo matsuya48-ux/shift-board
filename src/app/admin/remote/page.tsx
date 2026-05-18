@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, Package, Gauge } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { RemoteList, type RemoteReportRow } from "@/app/remote/_components/RemoteList";
+import {
+  RemoteList,
+  type RemoteReportRow,
+} from "@/app/remote/_components/RemoteList";
 import { workHours, fmtHours1, fmtPerHour } from "@/lib/remote";
 
 export const dynamic = "force-dynamic";
@@ -56,32 +59,103 @@ export default async function AdminRemotePage({
     .eq("role", "staff")
     .order("display_name");
 
+  // ============= 集計 =============
+
+  // 全体合計
+  let totalHours = 0;
+  let totalItems = 0;
+  rows.forEach((r) => {
+    totalHours += workHours(r.start_time.slice(0, 5), r.end_time.slice(0, 5));
+    totalItems += r.item_count;
+  });
+  const overallRate = totalHours > 0 ? totalItems / totalHours : 0;
+
   // スタッフ別集計
-  type Agg = {
+  type StaffAgg = {
     staffId: string;
     name: string;
     count: number;
     hours: number;
     items: number;
+    rate: number;
   };
-  const aggMap = new Map<string, Agg>();
+  const staffAggMap = new Map<string, StaffAgg>();
   rows.forEach((r) => {
     const id = r.staff_id;
     const name = r.staffs?.display_name ?? "(不明)";
     const h = workHours(r.start_time.slice(0, 5), r.end_time.slice(0, 5));
-    const agg = aggMap.get(id) ?? {
+    const agg = staffAggMap.get(id) ?? {
       staffId: id,
       name,
       count: 0,
       hours: 0,
       items: 0,
+      rate: 0,
     };
     agg.count += 1;
     agg.hours += h;
     agg.items += r.item_count;
-    aggMap.set(id, agg);
+    staffAggMap.set(id, agg);
   });
-  const aggs = [...aggMap.values()].sort((a, b) => b.items - a.items);
+  const staffAggs = [...staffAggMap.values()].map((a) => ({
+    ...a,
+    rate: a.hours > 0 ? a.items / a.hours : 0,
+  }));
+  const staffByItems = [...staffAggs].sort((a, b) => b.items - a.items);
+  const staffByRate = [...staffAggs].sort((a, b) => b.rate - a.rate);
+  const maxItems = staffByItems[0]?.items ?? 0;
+  const maxRate = staffByRate[0]?.rate ?? 0;
+
+  // 業務（task）別集計
+  type TaskAgg = {
+    task: string;
+    count: number;
+    hours: number;
+    items: number;
+    rate: number;
+  };
+  const taskAggMap = new Map<string, TaskAgg>();
+  rows.forEach((r) => {
+    const t = r.task_name;
+    const h = workHours(r.start_time.slice(0, 5), r.end_time.slice(0, 5));
+    const agg = taskAggMap.get(t) ?? {
+      task: t,
+      count: 0,
+      hours: 0,
+      items: 0,
+      rate: 0,
+    };
+    agg.count += 1;
+    agg.hours += h;
+    agg.items += r.item_count;
+    taskAggMap.set(t, agg);
+  });
+  const taskAggs = [...taskAggMap.values()]
+    .map((t) => ({ ...t, rate: t.hours > 0 ? t.items / t.hours : 0 }))
+    .sort((a, b) => b.hours - a.hours);
+
+  // 日別合計（推移）
+  type DailyAgg = {
+    date: string;
+    hours: number;
+    items: number;
+  };
+  const dailyAggMap = new Map<string, DailyAgg>();
+  rows.forEach((r) => {
+    const h = workHours(r.start_time.slice(0, 5), r.end_time.slice(0, 5));
+    const agg = dailyAggMap.get(r.work_date) ?? {
+      date: r.work_date,
+      hours: 0,
+      items: 0,
+    };
+    agg.hours += h;
+    agg.items += r.item_count;
+    dailyAggMap.set(r.work_date, agg);
+  });
+  const dailyAggs = [...dailyAggMap.values()].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+  const maxDailyItems = Math.max(1, ...dailyAggs.map((d) => d.items));
 
   // 前月/翌月リンク
   const prevMonth = (() => {
@@ -118,10 +192,10 @@ export default async function AdminRemotePage({
 
         <header className="mb-5 mt-5 px-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.15em] text-[color:var(--accent)]">
-            Remote work · Admin
+            Remote work · Analytics
           </p>
           <h1 className="mt-2.5 text-[26px] font-semibold leading-[1.35] tracking-tight text-[color:var(--ink)]">
-            リモート作業報告
+            リモート作業分析
           </h1>
         </header>
 
@@ -171,49 +245,284 @@ export default async function AdminRemotePage({
           ))}
         </div>
 
-        {/* スタッフ別集計 */}
-        {aggs.length > 0 && (
-          <section className="mx-3 mb-5">
-            <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
-              スタッフ別集計
+        {rows.length === 0 ? (
+          <div className="mx-3 rounded-2xl bg-[color:var(--surface)] p-10 text-center shadow-[var(--shadow-sm)]">
+            <p className="text-[13px] text-[color:var(--ink-3)]">
+              この期間の報告はありません
             </p>
-            <ul className="space-y-1.5">
-              {aggs.map((a) => {
-                const rate = a.hours > 0 ? a.items / a.hours : 0;
-                return (
-                  <li
-                    key={a.staffId}
-                    className="flex items-center gap-3 rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-semibold text-[color:var(--ink)]">
-                        {a.name}
-                      </p>
-                      <p className="text-[10px] tabular-nums text-[color:var(--ink-3)]">
-                        {a.count}件報告 / {fmtHours1(a.hours)}h / {a.items}件
-                      </p>
-                    </div>
-                    <p className="text-[15px] font-semibold tabular-nums text-[color:var(--accent)]">
-                      {fmtPerHour(rate)}
-                      <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
-                        件/h
-                      </span>
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
+          </div>
+        ) : (
+          <>
+            {/* 全体サマリー */}
+            <section className="mx-3 mb-5">
+              <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
+                全体サマリー
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <SummaryCard
+                  Icon={Clock}
+                  label="合計時間"
+                  value={fmtHours1(totalHours)}
+                  unit="h"
+                />
+                <SummaryCard
+                  Icon={Package}
+                  label="合計件数"
+                  value={String(totalItems)}
+                  unit="件"
+                />
+                <SummaryCard
+                  Icon={Gauge}
+                  label="平均"
+                  value={fmtPerHour(overallRate)}
+                  unit="件/h"
+                  highlight
+                />
+              </div>
+            </section>
 
-        {/* 報告一覧 */}
-        <section className="px-3">
-          <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
-            報告一覧（{rows.length}件）
-          </p>
-          <RemoteList reports={reportsForList} showStaffName />
-        </section>
+            {/* スタッフ別：件/h ランキング */}
+            {!sp.staff && staffByRate.length > 1 && (
+              <section className="mx-3 mb-5">
+                <div className="mb-2 flex items-center gap-1.5 px-1">
+                  <Trophy
+                    className="h-3.5 w-3.5 text-[color:var(--accent)]"
+                    strokeWidth={2}
+                  />
+                  <p className="text-[12px] font-semibold text-[color:var(--ink-2)]">
+                    1時間あたり 件数ランキング
+                  </p>
+                </div>
+                <ul className="space-y-1.5">
+                  {staffByRate.map((s, i) => {
+                    const widthPct =
+                      maxRate > 0
+                        ? Math.max(4, (s.rate / maxRate) * 100)
+                        : 0;
+                    const rankColor =
+                      i === 0
+                        ? "#d4a747"
+                        : i === 1
+                          ? "#9ca3af"
+                          : i === 2
+                            ? "#b8723a"
+                            : "transparent";
+                    return (
+                      <li
+                        key={s.staffId}
+                        className="rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold tabular-nums text-white"
+                            style={{
+                              background:
+                                i < 3 ? rankColor : "var(--ink-4)",
+                            }}
+                          >
+                            {i + 1}
+                          </span>
+                          <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
+                            {s.name}
+                          </p>
+                          <p className="text-[14px] font-semibold tabular-nums text-[color:var(--accent)]">
+                            {fmtPerHour(s.rate)}
+                            <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
+                              件/h
+                            </span>
+                          </p>
+                        </div>
+                        <div className="ml-8 mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
+                          <div
+                            className="h-full rounded-full bg-[color:var(--accent)] transition-all"
+                            style={{ width: `${widthPct}%` }}
+                          />
+                        </div>
+                        <p className="ml-8 mt-1 text-[10px] tabular-nums text-[color:var(--ink-3)]">
+                          {fmtHours1(s.hours)}h / {s.items}件 ・ {s.count}件報告
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            {/* スタッフ別：件数ランキング */}
+            {!sp.staff && staffByItems.length > 1 && (
+              <section className="mx-3 mb-5">
+                <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
+                  件数ランキング
+                </p>
+                <ul className="space-y-1.5">
+                  {staffByItems.map((s, i) => {
+                    const widthPct =
+                      maxItems > 0
+                        ? Math.max(4, (s.items / maxItems) * 100)
+                        : 0;
+                    return (
+                      <li
+                        key={s.staffId}
+                        className="rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-5 flex-shrink-0 text-[11px] font-semibold tabular-nums text-[color:var(--ink-3)]">
+                            {i + 1}
+                          </span>
+                          <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
+                            {s.name}
+                          </p>
+                          <p className="text-[14px] font-semibold tabular-nums text-[color:var(--ink)]">
+                            {s.items}
+                            <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
+                              件
+                            </span>
+                          </p>
+                        </div>
+                        <div className="ml-7 mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
+                          <div
+                            className="h-full rounded-full bg-[color:var(--ink-2)] opacity-70 transition-all"
+                            style={{ width: `${widthPct}%` }}
+                          />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            {/* 業務別集計 */}
+            {taskAggs.length > 0 && (
+              <section className="mx-3 mb-5">
+                <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
+                  業務別集計
+                </p>
+                <ul className="space-y-1.5">
+                  {taskAggs.map((t) => {
+                    const pct =
+                      totalHours > 0 ? (t.hours / totalHours) * 100 : 0;
+                    return (
+                      <li
+                        key={t.task}
+                        className="rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]"
+                      >
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
+                            {t.task}
+                          </p>
+                          <p className="text-[12px] tabular-nums text-[color:var(--ink-3)]">
+                            {pct.toFixed(0)}%
+                          </p>
+                        </div>
+                        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
+                          <div
+                            className="h-full rounded-full bg-[color:var(--accent)] opacity-70"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <p className="mt-1.5 text-[10px] tabular-nums text-[color:var(--ink-3)]">
+                          {fmtHours1(t.hours)}h ／ {t.items}件 ／{" "}
+                          <span className="font-semibold text-[color:var(--accent)]">
+                            {fmtPerHour(t.rate)} 件/h
+                          </span>
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            {/* 日別推移 */}
+            {dailyAggs.length > 0 && (
+              <section className="mx-3 mb-5 rounded-2xl bg-[color:var(--surface)] p-4 shadow-[var(--shadow-sm)]">
+                <p className="mb-3 text-[12px] font-semibold text-[color:var(--ink-2)]">
+                  日別件数の推移
+                </p>
+                <div className="flex h-24 items-end gap-0.5 overflow-x-auto">
+                  {dailyAggs.map((d) => {
+                    const heightPct = (d.items / maxDailyItems) * 100;
+                    const [, m, day] = d.date.split("-").map(Number);
+                    return (
+                      <div
+                        key={d.date}
+                        className="flex flex-1 min-w-[14px] flex-col items-center justify-end gap-1"
+                        title={`${m}/${day} : ${d.items}件 / ${fmtHours1(d.hours)}h`}
+                      >
+                        <div
+                          className="w-full rounded-t bg-[color:var(--accent)] opacity-80 transition-all"
+                          style={{ height: `${heightPct}%`, minHeight: 2 }}
+                        />
+                        <span className="text-[8px] tabular-nums text-[color:var(--ink-4)]">
+                          {day}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* 報告一覧 */}
+            <section className="px-3">
+              <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
+                報告一覧（{rows.length}件）
+              </p>
+              <RemoteList reports={reportsForList} showStaffName />
+            </section>
+          </>
+        )}
       </div>
     </AppShell>
+  );
+}
+
+function SummaryCard({
+  Icon,
+  label,
+  value,
+  unit,
+  highlight,
+}: {
+  Icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  label: string;
+  value: string;
+  unit: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl p-3 shadow-[var(--shadow-sm)] ${
+        highlight
+          ? "bg-[color:var(--accent-soft)]"
+          : "bg-[color:var(--surface)]"
+      }`}
+    >
+      <div
+        className={`mb-1.5 flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.06em] ${
+          highlight
+            ? "text-[color:var(--accent)]"
+            : "text-[color:var(--ink-3)]"
+        }`}
+      >
+        <Icon className="h-3 w-3" strokeWidth={2} />
+        {label}
+      </div>
+      <p className="flex items-baseline gap-0.5 tabular-nums">
+        <span
+          className={`text-[20px] font-semibold leading-none tracking-tight ${
+            highlight
+              ? "text-[color:var(--accent)]"
+              : "text-[color:var(--ink)]"
+          }`}
+        >
+          {value}
+        </span>
+        <span className="text-[10px] font-medium text-[color:var(--ink-3)]">
+          {unit}
+        </span>
+      </p>
+    </div>
   );
 }
