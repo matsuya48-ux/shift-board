@@ -130,8 +130,28 @@ export function RemoteForm({ initial, onDone, taskSuggestions = [] }: Props) {
           業務内容
         </label>
 
-        {/* 既定の業務をワンタップで選択 */}
-        <div className="mb-2 flex flex-wrap gap-1.5">
+        {/* 自由入力（主） */}
+        <input
+          type="text"
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
+          list="remote-task-suggestions"
+          placeholder="自由に入力（例：メール対応／検品入力）"
+          className="h-12 w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] px-4 text-[15px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
+        />
+        {allTaskOptions.length > 0 && (
+          <datalist id="remote-task-suggestions">
+            {allTaskOptions.map((t) => (
+              <option key={t} value={t} />
+            ))}
+          </datalist>
+        )}
+
+        {/* よく使う業務（補助：ワンタップ入力） */}
+        <p className="mt-2.5 mb-1.5 text-[10px] text-[color:var(--ink-3)]">
+          よく使う業務（タップで入力）
+        </p>
+        <div className="flex flex-wrap gap-1.5">
           {DEFAULT_TASK_OPTIONS.map((opt) => {
             const active = taskName === opt;
             return (
@@ -150,22 +170,6 @@ export function RemoteForm({ initial, onDone, taskSuggestions = [] }: Props) {
             );
           })}
         </div>
-
-        <input
-          type="text"
-          value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
-          list="remote-task-suggestions"
-          placeholder="または自由入力（例：メール対応／検品入力）"
-          className="h-12 w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] px-4 text-[15px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
-        />
-        {allTaskOptions.length > 0 && (
-          <datalist id="remote-task-suggestions">
-            {allTaskOptions.map((t) => (
-              <option key={t} value={t} />
-            ))}
-          </datalist>
-        )}
       </div>
 
       {/* 開始・終了 */}
