@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronRight,
   Info,
+  Laptop,
 } from "lucide-react";
 import {
   summarize,
@@ -303,6 +304,28 @@ export default async function DashboardPage() {
             </div>
             <ChevronRight className="h-5 w-5 flex-shrink-0 opacity-70" strokeWidth={2} />
           </div>
+        </Link>
+
+        {/* リモート作業報告カード */}
+        <Link
+          href="/remote"
+          className="mb-5 flex items-center gap-3.5 rounded-2xl bg-[color:var(--surface)] p-4 shadow-[var(--shadow-sm)] transition-transform active:scale-[0.98] animate-rise"
+        >
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[color:var(--accent-soft)] text-[color:var(--accent)]">
+            <Laptop className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          </div>
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <p className="text-[14px] font-semibold tracking-tight text-[color:var(--ink)]">
+              リモート作業報告
+            </p>
+            <p className="text-[11px] text-[color:var(--ink-3)]">
+              業務・時間・件数を記録（1時間あたり件数も自動計算）
+            </p>
+          </div>
+          <ChevronRight
+            className="h-4 w-4 flex-shrink-0 text-[color:var(--ink-4)]"
+            strokeWidth={2}
+          />
         </Link>
 
         {/* 管理者メニュー */}

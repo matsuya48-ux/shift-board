@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Settings2,
   Printer,
+  Laptop,
 } from "lucide-react";
 
 export default async function AdminPage() {
@@ -115,6 +116,12 @@ export default async function AdminPage() {
           その他
         </p>
         <section className="space-y-3">
+          <SecondaryMenuCard
+            href="/admin/remote"
+            title="リモート作業報告"
+            subtitle="スタッフ別の業務件数・1時間あたり件数を集計"
+            Icon={Laptop}
+          />
           <SecondaryMenuCard
             href="/admin/settings"
             title="設定"
