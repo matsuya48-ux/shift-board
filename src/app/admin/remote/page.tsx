@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Trophy, Clock, Package, Gauge } from "lucide-react";
+import { ArrowLeft, Clock, Package, Gauge } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -101,10 +101,9 @@ export default async function AdminRemotePage({
     ...a,
     rate: a.hours > 0 ? a.items / a.hours : 0,
   }));
-  const staffByItems = [...staffAggs].sort((a, b) => b.items - a.items);
-  const staffByRate = [...staffAggs].sort((a, b) => b.rate - a.rate);
-  const maxItems = staffByItems[0]?.items ?? 0;
-  const maxRate = staffByRate[0]?.rate ?? 0;
+  // 作業時間の多い順で並べる（"誰がどれくらいやっているか" を見るため）
+  const staffByHours = [...staffAggs].sort((a, b) => b.hours - a.hours);
+  const maxHours = staffByHours[0]?.hours ?? 0;
 
   // 業務（task）別集計
   type TaskAgg = {
@@ -281,110 +280,49 @@ export default async function AdminRemotePage({
               </div>
             </section>
 
-            {/* スタッフ別：件/h ランキング */}
-            {!sp.staff && staffByRate.length > 1 && (
-              <section className="mx-3 mb-5">
-                <div className="mb-2 flex items-center gap-1.5 px-1">
-                  <Trophy
-                    className="h-3.5 w-3.5 text-[color:var(--accent)]"
-                    strokeWidth={2}
-                  />
-                  <p className="text-[12px] font-semibold text-[color:var(--ink-2)]">
-                    1時間あたり 件数ランキング
-                  </p>
-                </div>
-                <ul className="space-y-1.5">
-                  {staffByRate.map((s, i) => {
-                    const widthPct =
-                      maxRate > 0
-                        ? Math.max(4, (s.rate / maxRate) * 100)
-                        : 0;
-                    const rankColor =
-                      i === 0
-                        ? "#d4a747"
-                        : i === 1
-                          ? "#9ca3af"
-                          : i === 2
-                            ? "#b8723a"
-                            : "transparent";
-                    return (
-                      <li
-                        key={s.staffId}
-                        className="rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold tabular-nums text-white"
-                            style={{
-                              background:
-                                i < 3 ? rankColor : "var(--ink-4)",
-                            }}
-                          >
-                            {i + 1}
-                          </span>
-                          <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
-                            {s.name}
-                          </p>
-                          <p className="text-[14px] font-semibold tabular-nums text-[color:var(--accent)]">
-                            {fmtPerHour(s.rate)}
-                            <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
-                              件/h
-                            </span>
-                          </p>
-                        </div>
-                        <div className="ml-8 mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
-                          <div
-                            className="h-full rounded-full bg-[color:var(--accent)] transition-all"
-                            style={{ width: `${widthPct}%` }}
-                          />
-                        </div>
-                        <p className="ml-8 mt-1 text-[10px] tabular-nums text-[color:var(--ink-3)]">
-                          {fmtHours1(s.hours)}h / {s.items}件 ・ {s.count}件報告
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            )}
-
-            {/* スタッフ別：件数ランキング */}
-            {!sp.staff && staffByItems.length > 1 && (
+            {/* スタッフ別作業状況 */}
+            {!sp.staff && staffByHours.length > 0 && (
               <section className="mx-3 mb-5">
                 <p className="mb-2 px-1 text-[12px] font-semibold text-[color:var(--ink-2)]">
-                  件数ランキング
+                  スタッフ別 作業状況
                 </p>
                 <ul className="space-y-1.5">
-                  {staffByItems.map((s, i) => {
+                  {staffByHours.map((s) => {
                     const widthPct =
-                      maxItems > 0
-                        ? Math.max(4, (s.items / maxItems) * 100)
+                      maxHours > 0
+                        ? Math.max(4, (s.hours / maxHours) * 100)
                         : 0;
                     return (
                       <li
                         key={s.staffId}
                         className="rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]"
                       >
-                        <div className="flex items-center gap-2.5">
-                          <span className="w-5 flex-shrink-0 text-[11px] font-semibold tabular-nums text-[color:var(--ink-3)]">
-                            {i + 1}
-                          </span>
+                        <div className="flex items-baseline justify-between gap-2">
                           <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]">
                             {s.name}
                           </p>
                           <p className="text-[14px] font-semibold tabular-nums text-[color:var(--ink)]">
-                            {s.items}
+                            {fmtHours1(s.hours)}
                             <span className="ml-0.5 text-[10px] font-normal text-[color:var(--ink-3)]">
-                              件
+                              h
                             </span>
                           </p>
                         </div>
-                        <div className="ml-7 mt-1.5 h-1 overflow-hidden rounded-full bg-[color:var(--bg)]">
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[color:var(--bg)]">
                           <div
-                            className="h-full rounded-full bg-[color:var(--ink-2)] opacity-70 transition-all"
+                            className="h-full rounded-full bg-[color:var(--accent)]"
                             style={{ width: `${widthPct}%` }}
                           />
                         </div>
+                        <p className="mt-1.5 text-[11px] tabular-nums text-[color:var(--ink-3)]">
+                          {s.items}件 ／{" "}
+                          <span className="text-[color:var(--accent)] font-medium">
+                            {fmtPerHour(s.rate)} 件/h
+                          </span>
+                          <span className="ml-1.5 text-[10px] text-[color:var(--ink-4)]">
+                            （{s.count}件報告）
+                          </span>
+                        </p>
                       </li>
                     );
                   })}
