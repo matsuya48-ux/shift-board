@@ -14,6 +14,12 @@ import {
   fmtPerHour,
 } from "@/lib/remote";
 
+/** 既定の業務内容（よく使う作業）。過去入力からの履歴と統合される。 */
+const DEFAULT_TASK_OPTIONS = [
+  "商店に商品コメント登録作業",
+  "楽天商品登録作業",
+];
+
 type Props = {
   /** 編集モード時、対象report */
   initial?: {
@@ -30,6 +36,10 @@ type Props = {
 };
 
 export function RemoteForm({ initial, onDone, taskSuggestions = [] }: Props) {
+  // 既定 + 過去入力（重複除去）
+  const allTaskOptions = Array.from(
+    new Set([...DEFAULT_TASK_OPTIONS, ...taskSuggestions]),
+  );
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{
@@ -119,17 +129,39 @@ export function RemoteForm({ initial, onDone, taskSuggestions = [] }: Props) {
         <label className="mb-2 block text-[12px] font-medium text-[color:var(--ink-2)]">
           業務内容
         </label>
+
+        {/* 既定の業務をワンタップで選択 */}
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {DEFAULT_TASK_OPTIONS.map((opt) => {
+            const active = taskName === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setTaskName(opt)}
+                className={`rounded-full px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                  active
+                    ? "bg-[color:var(--accent)] text-white"
+                    : "bg-[color:var(--bg)] text-[color:var(--ink-2)] active:scale-95"
+                }`}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+
         <input
           type="text"
           value={taskName}
           onChange={(e) => setTaskName(e.target.value)}
           list="remote-task-suggestions"
-          placeholder="例：商品登録／メール対応／検品入力"
+          placeholder="または自由入力（例：メール対応／検品入力）"
           className="h-12 w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] px-4 text-[15px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
         />
-        {taskSuggestions.length > 0 && (
+        {allTaskOptions.length > 0 && (
           <datalist id="remote-task-suggestions">
-            {taskSuggestions.map((t) => (
+            {allTaskOptions.map((t) => (
               <option key={t} value={t} />
             ))}
           </datalist>
