@@ -81,19 +81,30 @@ export default async function TimeOffPage() {
           </div>
         </div>
 
-        {/* 申請フォームカード */}
-        <section className="mb-5 rounded-3xl bg-[color:var(--surface)] p-7 shadow-[var(--shadow-sm)]">
-          <TimeOffForm cycleStart={cycle.start} cycleEnd={cycle.end} />
-        </section>
-
-        {/* 希望休なしスイッチ */}
-        <section className="mb-10">
+        {/* 希望休なしスイッチ（申請の選択肢として上部に表示） */}
+        <section className="mb-5">
           <NoRequestSwitch
             cycleMonth={cycleKey}
             cycleLabel={`${cycle.cycleMonth}月度`}
             initialMarked={noRequestMarked}
             hasAnyRequest={hasCycleRequest}
           />
+        </section>
+
+        {/* または日付指定で申請 */}
+        {!noRequestMarked && (
+          <div className="mb-2 flex items-center gap-3 px-3">
+            <div className="h-px flex-1 bg-[color:var(--line)]" />
+            <p className="text-[11px] text-[color:var(--ink-3)]">
+              または 日付を指定して申請
+            </p>
+            <div className="h-px flex-1 bg-[color:var(--line)]" />
+          </div>
+        )}
+
+        {/* 申請フォームカード */}
+        <section className="mb-10 rounded-3xl bg-[color:var(--surface)] p-7 shadow-[var(--shadow-sm)]">
+          <TimeOffForm cycleStart={cycle.start} cycleEnd={cycle.end} />
         </section>
 
         {/* 申請中 件数 */}

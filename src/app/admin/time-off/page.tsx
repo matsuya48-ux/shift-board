@@ -18,6 +18,9 @@ type Req = {
   status: "pending" | "approved" | "rejected";
   submitted_at: string;
   admin_note: string | null;
+  decided_at: string | null;
+  decided_by: string | null;
+  decider_name?: string | null;
   staffs: {
     display_name: string;
     warehouses: { name: string } | null;
@@ -38,7 +41,7 @@ export default async function AdminTimeOffPage({
   let query = supabase
     .from("time_off_requests")
     .select(
-      "id, request_date, reason, status, submitted_at, admin_note, staffs(display_name, warehouses(name))",
+      "id, request_date, reason, status, submitted_at, admin_note, decided_at, decided_by, staffs(display_name, warehouses(name))",
     )
     .order("request_date", { ascending: true });
 
@@ -46,7 +49,33 @@ export default async function AdminTimeOffPage({
     query = query.eq("status", filter);
   }
 
-  const { data: requests } = await query;
+  const { data: rawRequests } = await query;
+
+  // 承認者名を取得
+  const deciderIds = Array.from(
+    new Set(
+      ((rawRequests ?? []) as { decided_by: string | null }[])
+        .map((r) => r.decided_by)
+        .filter((x): x is string => !!x),
+    ),
+  );
+  const deciderNameMap = new Map<string, string>();
+  if (deciderIds.length > 0) {
+    const { data: deciders } = await supabase
+      .from("staffs")
+      .select("id, display_name")
+      .in("id", deciderIds);
+    (deciders ?? []).forEach((d) =>
+      deciderNameMap.set(d.id as string, d.display_name as string),
+    );
+  }
+
+  const requests = ((rawRequests ?? []) as unknown as Req[]).map((r) => ({
+    ...r,
+    decider_name: r.decided_by
+      ? deciderNameMap.get(r.decided_by) ?? null
+      : null,
+  }));
 
   // 申請中件数（タブに関係なくカウント）
   const { count: pendingCount } = await supabase
@@ -174,7 +203,7 @@ export default async function AdminTimeOffPage({
         )}
 
         <div className="space-y-2.5">
-          {(requests as unknown as Req[] | null)?.map((req) => (
+          {requests.map((req) => (
             <RequestItem key={req.id} request={req} />
           ))}
         </div>

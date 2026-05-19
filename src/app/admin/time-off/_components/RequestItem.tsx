@@ -12,11 +12,24 @@ type Req = {
   status: "pending" | "approved" | "rejected";
   submitted_at: string;
   admin_note: string | null;
+  decided_at?: string | null;
+  decided_by?: string | null;
+  decider_name?: string | null;
   staffs: {
     display_name: string;
     warehouses: { name: string } | null;
   } | null;
 };
+
+function formatDecidedAt(iso: string): string {
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${y}/${m}/${day} ${hh}:${mm}`;
+}
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -96,6 +109,19 @@ export function RequestItem({ request: req }: { request: Req }) {
 
       {isExpanded && (
         <div className="border-t border-[color:var(--line)] px-4 py-4">
+          {/* 承認・却下情報 */}
+          {req.status !== "pending" && req.decided_at && (
+            <div className="mb-3 rounded-xl bg-[color:var(--bg)] p-3">
+              <p className="text-[11px] tabular-nums text-[color:var(--ink-3)]">
+                {req.status === "approved" ? "承認" : "却下"}：
+                {req.decider_name ?? "（不明）"}
+                <span className="ml-1.5 text-[color:var(--ink-4)]">
+                  {formatDecidedAt(req.decided_at)}
+                </span>
+              </p>
+            </div>
+          )}
+
           {req.admin_note && req.status !== "pending" && (
             <p className="mb-3 rounded-xl bg-[color:var(--bg)] p-3 text-[12px] text-[color:var(--ink-2)]">
               管理者メモ：{req.admin_note}

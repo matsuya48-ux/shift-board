@@ -26,10 +26,11 @@ const EMPLOYMENT_LABEL = {
 export default async function AdminStaffsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ warehouse?: string }>;
+  searchParams: Promise<{ warehouse?: string; show?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
+  const showInactive = params.show === "all";
 
   const supabase = createAdminClient();
 
@@ -43,10 +44,14 @@ export default async function AdminStaffsPage({
     .select(
       "id, display_name, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, is_active, warehouses(name), warehouse_id",
     )
+    .order("is_active", { ascending: false })
     .order("display_name");
 
   if (params.warehouse) {
     query = query.eq("warehouse_id", params.warehouse);
+  }
+  if (!showInactive) {
+    query = query.eq("is_active", true);
   }
 
   const { data: staffsRaw } = await query;
@@ -54,7 +59,24 @@ export default async function AdminStaffsPage({
     warehouse_id: string;
   })[];
 
-  const activeCount = staffs.filter((s) => s.is_active).length;
+  // カウント用クエリ（拠点フィルタを反映）
+  let totalQ = supabase
+    .from("staffs")
+    .select("*", { count: "exact", head: true });
+  let activeQ = supabase
+    .from("staffs")
+    .select("*", { count: "exact", head: true })
+    .eq("is_active", true);
+  if (params.warehouse) {
+    totalQ = totalQ.eq("warehouse_id", params.warehouse);
+    activeQ = activeQ.eq("warehouse_id", params.warehouse);
+  }
+  const [{ count: totalCount }, { count: activeCount }] = await Promise.all([
+    totalQ,
+    activeQ,
+  ]);
+  const activeCountForLabel = activeCount ?? 0;
+  const totalCountForLabel = totalCount ?? 0;
 
   return (
     <AppShell>
@@ -78,7 +100,7 @@ export default async function AdminStaffsPage({
               スタッフ管理
             </h1>
             <p className="mt-1.5 text-[13px] text-[color:var(--ink-3)]">
-              在籍 {activeCount} 名 / 全 {staffs.length} 名
+              在籍 {activeCountForLabel} 名 / 全 {totalCountForLabel} 名
             </p>
           </div>
         </header>
@@ -114,6 +136,30 @@ export default async function AdminStaffsPage({
             })}
           </div>
         )}
+
+        {/* 表示切替（在籍中 / すべて） */}
+        <div className="mb-3 flex gap-1 rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
+          <Link
+            href={`/admin/staffs${params.warehouse ? `?warehouse=${params.warehouse}` : ""}`}
+            className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[12px] font-medium transition-colors ${
+              !showInactive
+                ? "bg-[color:var(--accent)] text-white"
+                : "text-[color:var(--ink-3)]"
+            }`}
+          >
+            在籍中のみ
+          </Link>
+          <Link
+            href={`/admin/staffs?show=all${params.warehouse ? `&warehouse=${params.warehouse}` : ""}`}
+            className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[12px] font-medium transition-colors ${
+              showInactive
+                ? "bg-[color:var(--accent)] text-white"
+                : "text-[color:var(--ink-3)]"
+            }`}
+          >
+            すべて（無効含む）
+          </Link>
+        </div>
 
         {/* 新規登録 */}
         <Link
@@ -174,6 +220,11 @@ function StaffCard({ staff }: { staff: Staff }) {
           {staff.role === "admin" && (
             <span className="flex-shrink-0 rounded-full bg-[color:var(--ink)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white">
               Admin
+            </span>
+          )}
+          {!staff.is_active && (
+            <span className="flex-shrink-0 rounded-full bg-[color:var(--ink-4)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
+              無効
             </span>
           )}
         </div>
