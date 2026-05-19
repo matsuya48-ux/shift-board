@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/AppShell";
-import { ArrowLeft, ChevronRight, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Search, StickyNote } from "lucide-react";
 
 type Staff = {
   id: string;
@@ -13,6 +13,7 @@ type Staff = {
   preferred_start_time: string | null;
   preferred_end_time: string | null;
   is_active: boolean;
+  admin_note: string | null;
   warehouses: { name: string } | null;
 };
 
@@ -42,7 +43,7 @@ export default async function AdminStaffsPage({
   let query = supabase
     .from("staffs")
     .select(
-      "id, display_name, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, is_active, warehouses(name), warehouse_id",
+      "id, display_name, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, is_active, admin_note, warehouses(name), warehouse_id",
     )
     .order("is_active", { ascending: false })
     .order("display_name");
@@ -225,6 +226,14 @@ function StaffCard({ staff }: { staff: Staff }) {
           {!staff.is_active && (
             <span className="flex-shrink-0 rounded-full bg-[color:var(--ink-4)] px-1.5 py-0.5 text-[9px] font-semibold text-white">
               無効
+            </span>
+          )}
+          {staff.admin_note && (
+            <span
+              className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--accent-soft)] text-[color:var(--accent)]"
+              title="管理者メモあり"
+            >
+              <StickyNote className="h-2.5 w-2.5" strokeWidth={2} />
             </span>
           )}
         </div>

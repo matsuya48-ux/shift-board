@@ -21,7 +21,7 @@ export default async function StaffDetailPage({
     supabase
       .from("staffs")
       .select(
-        "id, display_name, warehouse_id, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, shift_style, is_active",
+        "id, display_name, warehouse_id, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, shift_style, is_active, admin_note",
       )
       .eq("id", id)
       .single(),

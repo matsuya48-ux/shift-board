@@ -27,6 +27,8 @@ function parseForm(formData: FormData) {
   const shift_style =
     (formData.get("shift_style") as "pattern" | "free" | "both") ?? "pattern";
   const is_active = formData.get("is_active") === "on";
+  const admin_note =
+    ((formData.get("admin_note") as string) ?? "").trim() || null;
 
   return {
     display_name,
@@ -38,6 +40,7 @@ function parseForm(formData: FormData) {
     preferred_end_time,
     shift_style,
     is_active,
+    admin_note,
   };
 }
 

@@ -16,6 +16,7 @@ type StaffFormValues = {
   preferred_end_time: string | null;
   shift_style: "pattern" | "free" | "both";
   is_active: boolean;
+  admin_note: string | null;
 };
 
 type Props = {
@@ -193,6 +194,19 @@ export function StaffForm({
           <option value="free">自由入力（開始・終了時刻）</option>
           <option value="both">両方</option>
         </select>
+      </Field>
+
+      <Field
+        label="管理者メモ（任意）"
+        hint="本人には表示されません。管理画面のみに表示されます。"
+      >
+        <textarea
+          name="admin_note"
+          rows={3}
+          defaultValue={initial?.admin_note ?? ""}
+          placeholder="例：リモート可・週末勤務NG・家庭事情あり など"
+          className="w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 py-2.5 text-[13px] leading-relaxed text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
+        />
       </Field>
 
       <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-[color:var(--bg)] p-3.5">
