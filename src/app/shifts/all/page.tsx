@@ -34,6 +34,7 @@ type Warehouse = {
 type Staff = {
   id: string;
   display_name: string;
+  employee_code: string | null;
   warehouse_id: string;
 };
 
@@ -363,14 +364,15 @@ async function MonthView({
   // 先にスタッフを取得して、希望休クエリの条件に使う
   const { data: staffsRaw } = await supabase
     .from("staffs")
-    .select("id, display_name, warehouse_id")
+    .select("id, display_name, employee_code, warehouse_id")
     .in(
       "warehouse_id",
       targetWarehouses.map((w) => w.id),
     )
     .eq("is_active", true)
     .eq("role", "staff")
-    .order("display_name");
+    .order("employee_code", { ascending: true, nullsFirst: false })
+    .order("display_name", { ascending: true });
 
   const targetStaffIds = (staffsRaw ?? []).map((s) => s.id as string);
 
@@ -445,6 +447,12 @@ async function MonthView({
     const aSup = isSupport(a) ? 1 : 0;
     const bSup = isSupport(b) ? 1 : 0;
     if (aSup !== bSup) return aSup - bSup;
+    // 社員コード昇順（無い場合は末尾）
+    const aCode = a.employee_code ?? "";
+    const bCode = b.employee_code ?? "";
+    if (aCode && bCode) return aCode.localeCompare(bCode, "ja", { numeric: true });
+    if (aCode) return -1;
+    if (bCode) return 1;
     return a.display_name.localeCompare(b.display_name, "ja");
   });
   // 管理者はシフト一覧に載せないので、スタッフIDに含まれないシフトは除外

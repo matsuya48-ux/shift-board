@@ -54,10 +54,11 @@ export default async function AdminRemotePage({
   // フィルタ用スタッフリスト
   const { data: staffsRaw } = await supabase
     .from("staffs")
-    .select("id, display_name")
+    .select("id, display_name, employee_code")
     .eq("is_active", true)
     .eq("role", "staff")
-    .order("display_name");
+    .order("employee_code", { ascending: true, nullsFirst: false })
+    .order("display_name", { ascending: true });
 
   // ============= 集計 =============
 

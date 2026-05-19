@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 
 function parseForm(formData: FormData) {
   const display_name = ((formData.get("display_name") as string) ?? "").trim();
+  const employee_code =
+    ((formData.get("employee_code") as string) ?? "").trim() || null;
   const warehouse_id = (formData.get("warehouse_id") as string) ?? "";
   const role = (formData.get("role") as "staff" | "admin") ?? "staff";
   const employment_type =
@@ -32,6 +34,7 @@ function parseForm(formData: FormData) {
 
   return {
     display_name,
+    employee_code,
     warehouse_id,
     role,
     employment_type,

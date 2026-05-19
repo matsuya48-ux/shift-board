@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronRight, Search, StickyNote } from "lucide-react";
 type Staff = {
   id: string;
   display_name: string;
+  employee_code: string | null;
   role: "staff" | "admin";
   employment_type: "full" | "part" | "contract" | "short";
   weekly_hour_limit: number | null;
@@ -43,10 +44,11 @@ export default async function AdminStaffsPage({
   let query = supabase
     .from("staffs")
     .select(
-      "id, display_name, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, is_active, admin_note, warehouses(name), warehouse_id",
+      "id, display_name, employee_code, role, employment_type, weekly_hour_limit, preferred_start_time, preferred_end_time, is_active, admin_note, warehouses(name), warehouse_id",
     )
     .order("is_active", { ascending: false })
-    .order("display_name");
+    .order("employee_code", { ascending: true, nullsFirst: false })
+    .order("display_name", { ascending: true });
 
   if (params.warehouse) {
     query = query.eq("warehouse_id", params.warehouse);
@@ -238,6 +240,14 @@ function StaffCard({ staff }: { staff: Staff }) {
           )}
         </div>
         <p className="truncate text-[11px] text-[color:var(--ink-3)]">
+          {staff.employee_code && (
+            <>
+              <span className="tabular-nums font-medium text-[color:var(--ink-2)]">
+                {staff.employee_code}
+              </span>
+              <span className="mx-1.5">・</span>
+            </>
+          )}
           {staff.warehouses?.name ?? "—"}
           <span className="mx-1.5">・</span>
           {EMPLOYMENT_LABEL[staff.employment_type]}

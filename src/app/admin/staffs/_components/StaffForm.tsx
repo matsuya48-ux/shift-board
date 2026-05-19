@@ -8,6 +8,7 @@ type Warehouse = { id: string; name: string };
 
 type StaffFormValues = {
   display_name: string;
+  employee_code: string | null;
   warehouse_id: string;
   role: "staff" | "admin";
   employment_type: "full" | "part" | "contract" | "short";
@@ -92,6 +93,19 @@ export function StaffForm({
           defaultValue={initial?.display_name ?? ""}
           placeholder="例：田中 太郎"
           className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 text-[14px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
+        />
+      </Field>
+
+      <Field
+        label="社員コード（任意）"
+        hint="シフト一覧やスタッフ一覧の並び順に使われます"
+      >
+        <input
+          name="employee_code"
+          type="text"
+          defaultValue={initial?.employee_code ?? ""}
+          placeholder="例：1042"
+          className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 text-[14px] tabular-nums text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
         />
       </Field>
 

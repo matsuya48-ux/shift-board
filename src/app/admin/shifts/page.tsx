@@ -21,10 +21,11 @@ export default async function AdminShiftsPage({
   let query = supabase
     .from("staffs")
     .select(
-      "id, display_name, weekly_hour_limit, employment_type, warehouse_id, warehouses(name)",
+      "id, display_name, employee_code, weekly_hour_limit, employment_type, warehouse_id, warehouses(name)",
     )
     .eq("is_active", true)
-    .order("display_name");
+    .order("employee_code", { ascending: true, nullsFirst: false })
+    .order("display_name", { ascending: true });
 
   if (params.warehouse) query = query.eq("warehouse_id", params.warehouse);
 

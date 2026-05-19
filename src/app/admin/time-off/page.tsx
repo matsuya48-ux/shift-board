@@ -93,9 +93,12 @@ export default async function AdminTimeOffPage({
   ] = await Promise.all([
     supabase
       .from("staffs")
-      .select("id, display_name, warehouses(name), warehouse_id, role")
+      .select(
+        "id, display_name, employee_code, warehouses(name), warehouse_id, role",
+      )
       .eq("is_active", true)
-      .order("display_name"),
+      .order("employee_code", { ascending: true, nullsFirst: false })
+      .order("display_name", { ascending: true }),
     supabase
       .from("time_off_requests")
       .select("staff_id")

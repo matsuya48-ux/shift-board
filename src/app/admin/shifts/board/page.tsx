@@ -73,11 +73,12 @@ export default async function ShiftBoardPage({
     supabase
       .from("staffs")
       .select(
-        "id, display_name, warehouse_id, preferred_start_time, preferred_end_time, shift_style, weekly_hour_limit",
+        "id, display_name, employee_code, warehouse_id, preferred_start_time, preferred_end_time, shift_style, weekly_hour_limit",
       )
       .eq("warehouse_id", whId)
       .eq("is_active", true)
-      .order("display_name"),
+      .order("employee_code", { ascending: true, nullsFirst: false })
+      .order("display_name", { ascending: true }),
     supabase
       .from("shifts")
       .select("*")

@@ -97,10 +97,11 @@ export default async function PrintPage({
     supabase.from("shift_patterns").select("*").in("warehouse_id", whIds),
     supabase
       .from("staffs")
-      .select("id, display_name, warehouse_id, weekly_hour_limit")
+      .select("id, display_name, employee_code, warehouse_id, weekly_hour_limit")
       .in("warehouse_id", whIds)
       .eq("is_active", true)
-      .order("display_name"),
+      .order("employee_code", { ascending: true, nullsFirst: false })
+      .order("display_name", { ascending: true }),
     supabase
       .from("warehouse_weekday_labels")
       .select("*")
