@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkles, Check } from "lucide-react";
+import { Loader2, Sparkles, Check, ArrowRight } from "lucide-react";
 import { autoSuggest } from "../actions";
 
 type Warehouse = { id: string; name: string };
@@ -33,13 +33,36 @@ export function AutoSuggestForm({
     };
   } | null>(null);
 
+  // 成功時の遷移先（warehouse / month を保持）
+  const [pendingNav, setPendingNav] = useState<{
+    warehouseId: string;
+    month: string;
+  } | null>(null);
+
+  // 2秒後にボードへ自動遷移（結果サマリーを一瞬見せてから移動）
+  useEffect(() => {
+    if (!pendingNav) return;
+    const t = setTimeout(() => {
+      router.push(
+        `/admin/shifts/board?warehouse=${pendingNav.warehouseId}&month=${pendingNav.month}`,
+      );
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [pendingNav, router]);
+
   async function handleSubmit(formData: FormData) {
     setResult(null);
+    setPendingNav(null);
+    const warehouseId = (formData.get("warehouse_id") as string) ?? "";
+    const month = (formData.get("month") as string) ?? "";
     startTransition(async () => {
       const r = await autoSuggest(formData);
       setResult(r);
       if (r.ok) {
         router.refresh();
+        if (warehouseId && month) {
+          setPendingNav({ warehouseId, month });
+        }
       }
     });
   }
@@ -121,6 +144,22 @@ export function AutoSuggestForm({
             </div>
           </div>
 
+          {/* ボードへ移動ボタン（自動で 2 秒後にも遷移） */}
+          {pendingNav && (
+            <button
+              type="button"
+              onClick={() => {
+                router.push(
+                  `/admin/shifts/board?warehouse=${pendingNav.warehouseId}&month=${pendingNav.month}`,
+                );
+              }}
+              className="mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[14px] font-medium text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.98]"
+            >
+              ボードで確認する
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </button>
+          )}
+
           <div className="overflow-hidden rounded-2xl border border-[color:var(--line)]">
             <table className="w-full text-left">
               <thead className="bg-[color:var(--bg)]">
@@ -163,7 +202,10 @@ export function AutoSuggestForm({
           </div>
 
           <p className="mt-4 text-center text-[11px] text-[color:var(--ink-3)]">
-            ※ 作成したシフトは下書きです。内容を確認後、スタッフ別の画面から公開してください
+            ※ 作成したシフトは下書きです。
+            {pendingNav
+              ? "まもなくボードに移動して内容を確認します…"
+              : "内容を確認後、スタッフ別の画面から公開してください"}
           </p>
         </div>
       )}
