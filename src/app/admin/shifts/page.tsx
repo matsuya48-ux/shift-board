@@ -2,7 +2,14 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/AppShell";
-import { ArrowLeft, ChevronRight, Search, Sparkles, Grid3x3 } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Search,
+  Sparkles,
+  Grid3x3,
+  Trash2,
+} from "lucide-react";
 
 export default async function AdminShiftsPage({
   searchParams,
@@ -86,7 +93,7 @@ export default async function AdminShiftsPage({
         {/* ボードで編集 */}
         <Link
           href="/admin/shifts/board"
-          className="mb-4 flex items-center gap-3.5 rounded-2xl bg-[color:var(--ink)] p-4 text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.99]"
+          className="mb-3 flex items-center gap-3.5 rounded-2xl bg-[color:var(--ink)] p-4 text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.99]"
         >
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Grid3x3 className="h-[18px] w-[18px]" strokeWidth={1.8} />
@@ -100,6 +107,25 @@ export default async function AdminShiftsPage({
             </p>
           </div>
           <ChevronRight className="h-4 w-4 flex-shrink-0 text-white/70" strokeWidth={2} />
+        </Link>
+
+        {/* 一括削除 */}
+        <Link
+          href="/admin/shifts/bulk-delete"
+          className="mb-4 flex items-center gap-3.5 rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 shadow-[var(--shadow-sm)] transition-transform active:scale-[0.99]"
+        >
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-red-50 text-[color:var(--danger)]">
+            <Trash2 className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="truncate text-[14px] font-semibold leading-snug text-[color:var(--ink)]">
+              シフト一括削除
+            </p>
+            <p className="truncate text-[11px] leading-snug text-[color:var(--ink-3)]">
+              指定月のシフトをまとめて削除（やり直し用）
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 flex-shrink-0 text-[color:var(--ink-4)]" strokeWidth={2} />
         </Link>
 
         {/* 拠点フィルタ */}
