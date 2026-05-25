@@ -11,6 +11,10 @@ import {
   cycleMonthKey,
 } from "@/lib/time-off-reminder";
 
+// 申請があったら即座に反映されるよう常に最新を取得
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Req = {
   id: string;
   request_date: string;

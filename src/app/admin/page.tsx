@@ -13,6 +13,10 @@ import {
   Laptop,
 } from "lucide-react";
 
+// 申請件数バッジが常に最新になるよう毎回取得
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminPage() {
   await requireAdmin();
   const supabase = createAdminClient();

@@ -69,6 +69,9 @@ export async function createTimeOffRequests(
   }
 
   revalidatePath("/time-off");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/time-off");
+  revalidatePath("/admin");
   return { ok: true, created: toInsert.length, skipped };
 }
 
@@ -91,6 +94,9 @@ export async function cancelTimeOffRequest(
   }
 
   revalidatePath("/time-off");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/time-off");
+  revalidatePath("/admin");
   return { ok: true };
 }
 
