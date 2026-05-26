@@ -48,6 +48,15 @@ function weekKey(d: Date): string {
   return toISODate(t);
 }
 
+/** スタッフID から 0〜4 のオフセットを生成（曜日ローテーション用） */
+function staffOffset(staffId: string): number {
+  let hash = 0;
+  for (let i = 0; i < staffId.length; i++) {
+    hash = (hash * 31 + staffId.charCodeAt(i)) & 0xfffffff;
+  }
+  return hash % 5;
+}
+
 /**
  * 指定拠点・指定月のシフトを自動提案。
  * - 月〜金の平日のみ作成（簡易版）
@@ -177,47 +186,71 @@ export async function autoSuggest(formData: FormData): Promise<SuggestionResult>
     ) - breakMin;
     const shiftHoursVal = mins / 60;
 
-    const weekMinutes = new Map<string, number>();
     let created = 0;
     let skipped = 0;
 
+    // 週ごとに平日をグループ化（月〜金のみ）
+    const weekGroups = new Map<string, Date[]>();
     for (const day of days) {
       const dow = day.getDay();
-      if (dow === 0 || dow === 6) continue; // 土日スキップ
-      const dateStr = toISODate(day);
-      const key = `${st.id}_${dateStr}`;
-      if (existing.has(key)) {
-        skipped++;
-        continue;
-      }
-      if (blocked.has(key)) {
-        skipped++;
-        continue;
-      }
+      if (dow === 0 || dow === 6) continue;
+      const wk = weekKey(day);
+      if (!weekGroups.has(wk)) weekGroups.set(wk, []);
+      weekGroups.get(wk)!.push(new Date(day));
+    }
 
-      // 週上限チェック
-      if (st.weekly_hour_limit) {
-        const wk = weekKey(day);
-        const used = weekMinutes.get(wk) ?? 0;
-        if ((used + mins) / 60 > st.weekly_hour_limit) {
+    // スタッフごとに曜日の開始位置をずらす
+    // → 週ごとに開始位置をさらにずらすので「先頭に偏る」現象が解消される
+    const stOff = staffOffset(st.id);
+    const weekEntries = [...weekGroups.entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+
+    for (let weekIdx = 0; weekIdx < weekEntries.length; weekIdx++) {
+      const [, weekDays] = weekEntries[weekIdx];
+      // 週ごとの曜日順をローテーション（その週に何曜日始まりにするか）
+      const offset = (stOff + weekIdx) % weekDays.length;
+      const rotated = [
+        ...weekDays.slice(offset),
+        ...weekDays.slice(0, offset),
+      ];
+
+      let weekUsedMin = 0;
+
+      for (const day of rotated) {
+        const dateStr = toISODate(day);
+        const key = `${st.id}_${dateStr}`;
+        if (existing.has(key)) {
           skipped++;
           continue;
         }
-        weekMinutes.set(wk, used + mins);
-      }
+        if (blocked.has(key)) {
+          skipped++;
+          continue;
+        }
 
-      toInsert.push({
-        staff_id: st.id,
-        warehouse_id: st.warehouse_id,
-        work_date: dateStr,
-        pattern_id: pattern?.id ?? null,
-        start_time: pattern ? null : st.preferred_start_time,
-        end_time: pattern ? null : st.preferred_end_time,
-        break_minutes: breakMin,
-        is_published: false,
-        created_by: admin.id,
-      });
-      created++;
+        // 週上限チェック
+        if (st.weekly_hour_limit) {
+          if ((weekUsedMin + mins) / 60 > st.weekly_hour_limit) {
+            skipped++;
+            continue;
+          }
+          weekUsedMin += mins;
+        }
+
+        toInsert.push({
+          staff_id: st.id,
+          warehouse_id: st.warehouse_id,
+          work_date: dateStr,
+          pattern_id: pattern?.id ?? null,
+          start_time: pattern ? null : st.preferred_start_time,
+          end_time: pattern ? null : st.preferred_end_time,
+          break_minutes: breakMin,
+          is_published: false,
+          created_by: admin.id,
+        });
+        created++;
+      }
     }
 
     perStaff.push({ name: st.display_name, created, skipped });
