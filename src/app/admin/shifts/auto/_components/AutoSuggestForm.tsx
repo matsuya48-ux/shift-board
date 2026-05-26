@@ -31,21 +31,46 @@ export function AutoSuggestForm({
         reason?: string;
       }[];
     };
+    warehouseIds?: string[];
   } | null>(null);
 
-  // 成功時の遷移先（warehouse / month を保持）
+  // 既定で全拠点選択
+  const [selectedWarehouses, setSelectedWarehouses] = useState<Set<string>>(
+    new Set(warehouses.map((w) => w.id)),
+  );
+
+  function toggleWarehouse(id: string) {
+    setSelectedWarehouses((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedWarehouses(new Set(warehouses.map((w) => w.id)));
+  }
+  function clearAll() {
+    setSelectedWarehouses(new Set());
+  }
+
+  // 成功時の遷移先（単一倉庫選択時のみボードへ。複数選択時は全員のシフトへ）
   const [pendingNav, setPendingNav] = useState<{
-    warehouseId: string;
+    warehouseIds: string[];
     month: string;
   } | null>(null);
 
-  // 2秒後にボードへ自動遷移（結果サマリーを一瞬見せてから移動）
   useEffect(() => {
     if (!pendingNav) return;
     const t = setTimeout(() => {
-      router.push(
-        `/admin/shifts/board?warehouse=${pendingNav.warehouseId}&month=${pendingNav.month}`,
-      );
+      if (pendingNav.warehouseIds.length === 1) {
+        router.push(
+          `/admin/shifts/board?warehouse=${pendingNav.warehouseIds[0]}&month=${pendingNav.month}`,
+        );
+      } else {
+        router.push(`/shifts/all?view=month&month=${pendingNav.month}`);
+      }
     }, 2000);
     return () => clearTimeout(t);
   }, [pendingNav, router]);
@@ -53,15 +78,18 @@ export function AutoSuggestForm({
   async function handleSubmit(formData: FormData) {
     setResult(null);
     setPendingNav(null);
-    const warehouseId = (formData.get("warehouse_id") as string) ?? "";
+    // チェックボックスから倉庫ID群を formData に詰める
+    formData.delete("warehouse_id");
+    for (const id of selectedWarehouses) formData.append("warehouse_id", id);
     const month = (formData.get("month") as string) ?? "";
+    const whIds = [...selectedWarehouses];
     startTransition(async () => {
       const r = await autoSuggest(formData);
       setResult(r);
       if (r.ok) {
         router.refresh();
-        if (warehouseId && month) {
-          setPendingNav({ warehouseId, month });
+        if (whIds.length > 0 && month) {
+          setPendingNav({ warehouseIds: whIds, month });
         }
       }
     });
@@ -71,21 +99,55 @@ export function AutoSuggestForm({
     <>
       <form action={handleSubmit} className="space-y-5">
         <div>
-          <label className="mb-2 block text-[12px] font-medium text-[color:var(--ink-2)]">
-            拠点
-          </label>
-          <select
-            name="warehouse_id"
-            required
-            defaultValue={warehouses[0]?.id}
-            className="h-11 w-full rounded-xl border border-[color:var(--line)] bg-white px-3.5 text-[14px] text-[color:var(--ink)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-4 focus:ring-[color:var(--accent-soft)]"
-          >
-            {warehouses.map((wh) => (
-              <option key={wh.id} value={wh.id}>
-                {wh.name}
-              </option>
-            ))}
-          </select>
+          <div className="mb-2 flex items-center justify-between">
+            <label className="text-[12px] font-medium text-[color:var(--ink-2)]">
+              拠点（複数選択可）
+            </label>
+            <div className="flex gap-1 text-[10px]">
+              <button
+                type="button"
+                onClick={selectAll}
+                className="rounded-full bg-[color:var(--bg)] px-2 py-0.5 font-medium text-[color:var(--ink-3)] active:scale-95"
+              >
+                全選択
+              </button>
+              <button
+                type="button"
+                onClick={clearAll}
+                className="rounded-full bg-[color:var(--bg)] px-2 py-0.5 font-medium text-[color:var(--ink-3)] active:scale-95"
+              >
+                解除
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {warehouses.map((wh) => {
+              const checked = selectedWarehouses.has(wh.id);
+              return (
+                <label
+                  key={wh.id}
+                  className={`flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-[13px] font-medium transition-colors ${
+                    checked
+                      ? "border-[color:var(--accent)] bg-[color:var(--accent-soft)] text-[color:var(--accent)]"
+                      : "border-[color:var(--line)] bg-white text-[color:var(--ink-2)]"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleWarehouse(wh.id)}
+                    className="h-4 w-4 accent-[color:var(--accent)]"
+                  />
+                  {wh.name}
+                </label>
+              );
+            })}
+          </div>
+          {selectedWarehouses.size === 0 && (
+            <p className="mt-1.5 text-[11px] text-[color:var(--danger)]">
+              ※ 拠点を1つ以上選択してください
+            </p>
+          )}
         </div>
 
         <div>
@@ -108,7 +170,7 @@ export function AutoSuggestForm({
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || selectedWarehouses.size === 0}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] text-[14px] font-medium text-white shadow-[0_8px_20px_-6px_rgba(45,85,69,0.4)] transition-transform active:scale-[0.98] disabled:bg-[color:var(--ink-4)] disabled:shadow-none"
         >
           {isPending ? (
@@ -116,7 +178,11 @@ export function AutoSuggestForm({
           ) : (
             <Sparkles className="h-4 w-4" strokeWidth={1.8} />
           )}
-          {isPending ? "作成中…" : "シフトを自動提案する"}
+          {isPending
+            ? "作成中…"
+            : selectedWarehouses.size === 0
+              ? "拠点を選択してください"
+              : `シフトを自動提案する（${selectedWarehouses.size}拠点）`}
         </button>
       </form>
 
@@ -144,18 +210,26 @@ export function AutoSuggestForm({
             </div>
           </div>
 
-          {/* ボードへ移動ボタン（自動で 2 秒後にも遷移） */}
+          {/* 確認画面へ移動ボタン（自動で 2 秒後にも遷移） */}
           {pendingNav && (
             <button
               type="button"
               onClick={() => {
-                router.push(
-                  `/admin/shifts/board?warehouse=${pendingNav.warehouseId}&month=${pendingNav.month}`,
-                );
+                if (pendingNav.warehouseIds.length === 1) {
+                  router.push(
+                    `/admin/shifts/board?warehouse=${pendingNav.warehouseIds[0]}&month=${pendingNav.month}`,
+                  );
+                } else {
+                  router.push(
+                    `/shifts/all?view=month&month=${pendingNav.month}`,
+                  );
+                }
               }}
               className="mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[14px] font-medium text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.98]"
             >
-              ボードで確認する
+              {pendingNav.warehouseIds.length === 1
+                ? "ボードで確認する"
+                : "全員のシフトで確認する"}
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
@@ -204,7 +278,9 @@ export function AutoSuggestForm({
           <p className="mt-4 text-center text-[11px] text-[color:var(--ink-3)]">
             ※ 作成したシフトは下書きです。
             {pendingNav
-              ? "まもなくボードに移動して内容を確認します…"
+              ? pendingNav.warehouseIds.length === 1
+                ? "まもなくボードに移動して内容を確認します…"
+                : "まもなく全員のシフトに移動します…"
               : "内容を確認後、スタッフ別の画面から公開してください"}
           </p>
         </div>

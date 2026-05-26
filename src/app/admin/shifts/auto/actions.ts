@@ -17,6 +17,8 @@ type SuggestionResult = {
     skipped: number;
     perStaff: { name: string; created: number; skipped: number; reason?: string }[];
   };
+  /** 処理対象になった倉庫ID配列（成功時のみ） */
+  warehouseIds?: string[];
 };
 
 type StaffRec = {
@@ -59,10 +61,14 @@ export async function autoSuggest(formData: FormData): Promise<SuggestionResult>
   const { staff: admin } = await requireAdmin();
   const supabase = createAdminClient();
 
-  const warehouseId = formData.get("warehouse_id") as string;
+  // 複数拠点対応：name="warehouse_id" を getAll で配列取得
+  const warehouseIds = formData
+    .getAll("warehouse_id")
+    .map((v) => String(v))
+    .filter((v) => v.length > 0);
   const month = formData.get("month") as string; // YYYY-MM
 
-  if (!warehouseId || !month) {
+  if (warehouseIds.length === 0 || !month) {
     return { ok: false, message: "拠点と月を指定してください" };
   }
 
@@ -70,29 +76,29 @@ export async function autoSuggest(formData: FormData): Promise<SuggestionResult>
   const target = new Date(y, m - 1, 1);
   const { start, end } = monthRange(target);
 
-  // 対象スタッフ（管理者は除外）
+  // 対象スタッフ（管理者は除外、複数拠点）
   const { data: staffsRaw } = await supabase
     .from("staffs")
     .select(
       "id, display_name, warehouse_id, weekly_hour_limit, preferred_start_time, preferred_end_time, shift_style",
     )
-    .eq("warehouse_id", warehouseId)
+    .in("warehouse_id", warehouseIds)
     .eq("is_active", true)
     .eq("role", "staff");
   const staffs = (staffsRaw ?? []) as StaffRec[];
 
-  // パターン
+  // パターン（複数拠点分すべて）
   const { data: patternsRaw } = await supabase
     .from("shift_patterns")
     .select("*")
-    .eq("warehouse_id", warehouseId);
-  const patterns = (patternsRaw ?? []) as PatternRow[];
+    .in("warehouse_id", warehouseIds);
+  const patternsAll = (patternsRaw ?? []) as PatternRow[];
 
   // 既存シフト
   const { data: existingShifts } = await supabase
     .from("shifts")
     .select("staff_id, work_date")
-    .eq("warehouse_id", warehouseId)
+    .in("warehouse_id", warehouseIds)
     .gte("work_date", toISODate(start))
     .lte("work_date", toISODate(end));
   const existing = new Set(
@@ -144,6 +150,13 @@ export async function autoSuggest(formData: FormData): Promise<SuggestionResult>
       });
       continue;
     }
+
+    // そのスタッフが所属する拠点のパターンに絞る
+    const patterns = patternsAll.filter(
+      (p) =>
+        (p as PatternRow & { warehouse_id?: string }).warehouse_id ===
+        st.warehouse_id,
+    );
 
     // 使うパターンを決定
     let pattern: PatternRow | null = null;
@@ -231,5 +244,6 @@ export async function autoSuggest(formData: FormData): Promise<SuggestionResult>
       skipped: totalSkipped,
       perStaff,
     },
+    warehouseIds,
   };
 }
