@@ -65,7 +65,7 @@ export default async function AdminTimeOffPage({
   let query = supabase
     .from("time_off_requests")
     .select(
-      "id, request_date, reason, status, submitted_at, admin_note, decided_at, decided_by, staffs(display_name, warehouses(name))",
+      "id, request_date, reason, status, submitted_at, admin_note, decided_at, decided_by, staffs:staffs!time_off_requests_staff_id_fkey(display_name, warehouses(name))",
     )
     .order("request_date", { ascending: true });
 
