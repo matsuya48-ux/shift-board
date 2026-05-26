@@ -88,6 +88,62 @@ export async function deleteShift(id: string) {
   return { ok: true };
 }
 
+/**
+ * シフトを別のスタッフ・別の日付に移動する（ドラッグ&ドロップ用）
+ * - 移動先に既存シフト or 予備(△)があれば失敗
+ * - 承認済み希望休がある日への移動は警告（フロントで判断）
+ * - 倉庫を跨いだ移動も可能（warehouse_id も更新）
+ */
+export async function moveShift(payload: {
+  shiftId: string;
+  toStaffId: string;
+  toWarehouseId: string;
+  toDate: string; // YYYY-MM-DD
+}): Promise<{ ok: boolean; message?: string }> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  // 移動先に既存シフトがないか確認
+  const { data: existing } = await supabase
+    .from("shifts")
+    .select("id")
+    .eq("staff_id", payload.toStaffId)
+    .eq("work_date", payload.toDate)
+    .maybeSingle();
+
+  if (existing) {
+    return {
+      ok: false,
+      message: "移動先には既にシフトがあります",
+    };
+  }
+
+  const { error } = await supabase
+    .from("shifts")
+    .update({
+      staff_id: payload.toStaffId,
+      warehouse_id: payload.toWarehouseId,
+      work_date: payload.toDate,
+    })
+    .eq("id", payload.shiftId);
+
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        ok: false,
+        message: "移動先には既にシフトがあります",
+      };
+    }
+    return { ok: false, message: error.message };
+  }
+
+  revalidatePath("/admin/shifts");
+  revalidatePath("/shifts/me");
+  revalidatePath("/shifts/all");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
 export async function togglePublished(id: string, currentValue: boolean) {
   await requireAdmin();
   const supabase = createAdminClient();

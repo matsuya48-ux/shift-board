@@ -19,7 +19,7 @@ import {
   type DateLabelOverride,
 } from "@/lib/labels";
 import { isHoliday, holidayName } from "@/lib/holidays";
-import { upsertShift, deleteShift } from "../../actions";
+import { upsertShift, deleteShift, moveShift } from "../../actions";
 
 const WEEKDAYS_SHORT = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -76,6 +76,72 @@ export function ShiftBoard({
 }) {
   const router = useRouter();
   const [editCell, setEditCell] = useState<EditCell | null>(null);
+
+  // ドラッグ&ドロップ用
+  const [draggingShiftId, setDraggingShiftId] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+  const [, startMoveTransition] = useTransition();
+  const [moveError, setMoveError] = useState<string | null>(null);
+
+  function handleDragStart(
+    e: React.DragEvent,
+    shiftId: string,
+  ) {
+    setDraggingShiftId(shiftId);
+    e.dataTransfer.effectAllowed = "move";
+    // dataTransfer.setData は IE 互換のため空でも何か入れておく
+    e.dataTransfer.setData("text/plain", shiftId);
+  }
+
+  function handleDragEnd() {
+    setDraggingShiftId(null);
+    setDragOverKey(null);
+  }
+
+  function handleDragOver(
+    e: React.DragEvent,
+    targetKey: string,
+    canDrop: boolean,
+  ) {
+    if (!draggingShiftId) return;
+    if (!canDrop) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverKey !== targetKey) setDragOverKey(targetKey);
+  }
+
+  function handleDragLeave(targetKey: string) {
+    if (dragOverKey === targetKey) setDragOverKey(null);
+  }
+
+  function handleDrop(
+    e: React.DragEvent,
+    toStaffId: string,
+    toWarehouseId: string,
+    toDate: string,
+  ) {
+    e.preventDefault();
+    const shiftId = draggingShiftId;
+    setDraggingShiftId(null);
+    setDragOverKey(null);
+    if (!shiftId) return;
+
+    setMoveError(null);
+    startMoveTransition(async () => {
+      const r = await moveShift({
+        shiftId,
+        toStaffId,
+        toWarehouseId,
+        toDate,
+      });
+      if (r.ok) {
+        router.refresh();
+      } else {
+        setMoveError(r.message ?? "移動に失敗しました");
+        setTimeout(() => setMoveError(null), 3000);
+      }
+    });
+  }
 
   const [year, mon] = month.split("-").map(Number);
   const firstDay = new Date(year, mon - 1, 1);
@@ -148,7 +214,7 @@ export function ShiftBoard({
   return (
     <>
       {/* 月切替 */}
-      <div className="mb-4 flex items-center justify-between rounded-2xl bg-[color:var(--surface)] p-2 shadow-[var(--shadow-sm)]">
+      <div className="mb-3 flex items-center justify-between rounded-2xl bg-[color:var(--surface)] p-2 shadow-[var(--shadow-sm)]">
         <Link
           href={prevMonthUrl()}
           className="flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
@@ -170,6 +236,18 @@ export function ShiftBoard({
           <ChevronRight className="h-4 w-4" strokeWidth={2} />
         </Link>
       </div>
+
+      {/* 操作ヒント */}
+      <p className="mb-3 px-2 text-[11px] leading-relaxed text-[color:var(--ink-3)]">
+        💡 シフトのセルをタップで編集／<b>ドラッグ&ドロップで別の日や別のスタッフに移動</b>できます（PC・タブレット）
+      </p>
+
+      {/* 移動エラー */}
+      {moveError && (
+        <div className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-[12px] text-[color:var(--danger)]">
+          {moveError}
+        </div>
+      )}
 
       {/* グリッド */}
       <div className="border-y border-[color:var(--line-strong)] bg-[color:var(--surface)]">
@@ -327,20 +405,45 @@ export function ShiftBoard({
                         ? patternMap.get(shift.pattern_id)
                         : null;
                       const isDraft = shift && !shift.is_published;
+                      const isTentative = !!shift?.is_tentative;
+
+                      // ドラッグ&ドロップ判定
+                      const isDragging = draggingShiftId === shift?.id;
+                      // 空セルで、予備でなく、ドラッグ中の自セル以外なら受け付け可
+                      const canDrop =
+                        !!draggingShiftId &&
+                        !shift &&
+                        !isTentative;
+                      const isDragOver = dragOverKey === key && canDrop;
 
                       return (
                         <td
                           key={dateStr}
+                          onDragOver={(e) =>
+                            handleDragOver(e, key, canDrop)
+                          }
+                          onDragLeave={() => handleDragLeave(key)}
+                          onDrop={(e) =>
+                            canDrop &&
+                            handleDrop(e, s.id, warehouse.id, dateStr)
+                          }
                           className={`w-10 border-r border-[color:var(--line)] p-0 ${
-                            isToday
-                              ? "bg-[color:var(--accent-soft)]"
-                              : isOff
-                                ? "bg-[color:var(--off-day)]"
-                                : ""
+                            isDragOver
+                              ? "bg-[color:var(--accent)]/30"
+                              : isToday
+                                ? "bg-[color:var(--accent-soft)]"
+                                : isOff
+                                  ? "bg-[color:var(--off-day)]"
+                                  : ""
                           }`}
                         >
                           <button
                             type="button"
+                            draggable={!!shift && !isTentative}
+                            onDragStart={(e) =>
+                              shift && handleDragStart(e, shift.id)
+                            }
+                            onDragEnd={handleDragEnd}
                             onClick={() =>
                               setEditCell({
                                 staff: s,
@@ -348,16 +451,22 @@ export function ShiftBoard({
                                 shift: shift ?? null,
                               })
                             }
-                            className={`flex h-full min-h-[44px] w-full flex-col items-center justify-center px-0.5 py-1 text-center transition-colors hover:bg-[color:var(--accent-soft)] ${
+                            className={`flex h-full min-h-[44px] w-full flex-col items-center justify-center px-0.5 py-1 text-center transition-colors ${
+                              isDragging
+                                ? "opacity-30"
+                                : "hover:bg-[color:var(--accent-soft)]"
+                            } ${
                               isDraft
                                 ? "ring-1 ring-dashed ring-[color:var(--warning)]"
                                 : ""
-                            }`}
+                            } ${shift && !isTentative ? "cursor-grab active:cursor-grabbing" : ""}`}
                             title={
                               shift
-                                ? isDraft
-                                  ? "下書き - タップで編集"
-                                  : "タップで編集"
+                                ? isTentative
+                                  ? "予備（△）"
+                                  : isDraft
+                                    ? "下書き - タップで編集 / ドラッグで移動"
+                                    : "タップで編集 / ドラッグで移動"
                                 : hasOff
                                   ? "希望休あり - タップで追加"
                                   : "タップで追加"
@@ -377,6 +486,10 @@ export function ShiftBoard({
                                   {fmtTimeShort(eff.end)}
                                 </div>
                               </>
+                            ) : isTentative ? (
+                              <span className="text-[14px] font-semibold text-[color:var(--ink-3)]">
+                                △
+                              </span>
                             ) : hasOff ? (
                               <span className="text-[10px] font-semibold text-[color:var(--warning)]">
                                 休
