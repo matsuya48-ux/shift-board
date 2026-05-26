@@ -31,6 +31,7 @@ export default async function AdminShiftsPage({
       "id, display_name, employee_code, weekly_hour_limit, employment_type, warehouse_id, warehouses(name)",
     )
     .eq("is_active", true)
+    .eq("role", "staff")
     .order("employee_code", { ascending: true, nullsFirst: false })
     .order("display_name", { ascending: true });
 

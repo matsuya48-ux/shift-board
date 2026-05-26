@@ -70,14 +70,15 @@ export async function autoSuggest(formData: FormData): Promise<SuggestionResult>
   const target = new Date(y, m - 1, 1);
   const { start, end } = monthRange(target);
 
-  // 対象スタッフ
+  // 対象スタッフ（管理者は除外）
   const { data: staffsRaw } = await supabase
     .from("staffs")
     .select(
       "id, display_name, warehouse_id, weekly_hour_limit, preferred_start_time, preferred_end_time, shift_style",
     )
     .eq("warehouse_id", warehouseId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("role", "staff");
   const staffs = (staffsRaw ?? []) as StaffRec[];
 
   // パターン
