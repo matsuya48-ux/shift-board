@@ -31,14 +31,34 @@ type Req = {
   } | null;
 };
 
+function monthRangeFor(monthKey: string): { start: string; end: string } {
+  const [y, m] = monthKey.split("-").map(Number);
+  const last = new Date(y, m, 0).getDate();
+  return {
+    start: `${monthKey}-01`,
+    end: `${monthKey}-${String(last).padStart(2, "0")}`,
+  };
+}
+
+function shiftMonth(monthKey: string, delta: number): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
 export default async function AdminTimeOffPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; month?: string }>;
 }) {
   await requireAdmin();
   const params = await searchParams;
   const filter = params.filter ?? "pending";
+
+  // 月：未指定なら「次のサイクル月」（=次月）をデフォルト
+  const cycle = getNextCycle();
+  const monthKey = params.month ?? cycleMonthKey(cycle);
+  const isAllMonths = monthKey === "all";
 
   const supabase = createAdminClient();
 
@@ -51,6 +71,13 @@ export default async function AdminTimeOffPage({
 
   if (filter !== "all") {
     query = query.eq("status", filter);
+  }
+
+  if (!isAllMonths) {
+    const range = monthRangeFor(monthKey);
+    query = query
+      .gte("request_date", range.start)
+      .lte("request_date", range.end);
   }
 
   const { data: rawRequests } = await query;
@@ -81,51 +108,58 @@ export default async function AdminTimeOffPage({
       : null,
   }));
 
-  // 申請中件数（タブに関係なくカウント）
+  // 申請中件数（タブと月に関係なく全体カウント）
   const { count: pendingCount } = await supabase
     .from("time_off_requests")
     .select("*", { count: "exact", head: true })
     .eq("status", "pending");
 
-  // 未提出スタッフ（次サイクル分）
-  const cycle = getNextCycle();
+  // 未提出スタッフ（次サイクル分・cycleが今表示月と一致する場合のみ表示）
   const cycleKey = cycleMonthKey(cycle);
-  const [
-    { data: activeStaffs },
-    { data: submittedIds },
-    { data: noRequestRows },
-  ] = await Promise.all([
-    supabase
-      .from("staffs")
-      .select(
-        "id, display_name, employee_code, warehouses(name), warehouse_id, role",
-      )
-      .eq("is_active", true)
-      .order("employee_code", { ascending: true, nullsFirst: false })
-      .order("display_name", { ascending: true }),
-    supabase
-      .from("time_off_requests")
-      .select("staff_id")
-      .gte("request_date", cycle.start)
-      .lte("request_date", cycle.end),
-    supabase
-      .from("time_off_no_requests")
-      .select("staff_id")
-      .eq("cycle_month", cycleKey),
-  ]);
-  const submittedSet = new Set(
-    (submittedIds ?? []).map((r) => r.staff_id),
-  );
-  const noRequestSet = new Set(
-    (noRequestRows ?? []).map((r) => r.staff_id),
-  );
-  // 管理者と「希望休なし」登録済みは未提出扱いから除外
-  const unsubmitted = (activeStaffs ?? []).filter(
-    (s) =>
-      s.role !== "admin" &&
-      !submittedSet.has(s.id as string) &&
-      !noRequestSet.has(s.id as string),
-  );
+  const showUnsubmitted = !isAllMonths && monthKey === cycleKey;
+  let unsubmitted: {
+    id: string;
+    display_name: string;
+    warehouses: { name: string } | null;
+  }[] = [];
+
+  if (showUnsubmitted) {
+    const [
+      { data: activeStaffs },
+      { data: submittedIds },
+      { data: noRequestRows },
+    ] = await Promise.all([
+      supabase
+        .from("staffs")
+        .select(
+          "id, display_name, employee_code, warehouses(name), warehouse_id, role",
+        )
+        .eq("is_active", true)
+        .order("employee_code", { ascending: true, nullsFirst: false })
+        .order("display_name", { ascending: true }),
+      supabase
+        .from("time_off_requests")
+        .select("staff_id")
+        .gte("request_date", cycle.start)
+        .lte("request_date", cycle.end),
+      supabase
+        .from("time_off_no_requests")
+        .select("staff_id")
+        .eq("cycle_month", cycleKey),
+    ]);
+    const submittedSet = new Set(
+      (submittedIds ?? []).map((r) => r.staff_id),
+    );
+    const noRequestSet = new Set(
+      (noRequestRows ?? []).map((r) => r.staff_id),
+    );
+    unsubmitted = (activeStaffs ?? []).filter(
+      (s) =>
+        s.role !== "admin" &&
+        !submittedSet.has(s.id as string) &&
+        !noRequestSet.has(s.id as string),
+    ) as unknown as typeof unsubmitted;
+  }
 
   const tabs = [
     { key: "pending", label: "申請中" },
@@ -133,6 +167,24 @@ export default async function AdminTimeOffPage({
     { key: "rejected", label: "却下" },
     { key: "all", label: "すべて" },
   ];
+
+  const prevMonth = isAllMonths ? cycleKey : shiftMonth(monthKey, -1);
+  const nextMonthStr = isAllMonths ? cycleKey : shiftMonth(monthKey, 1);
+
+  const monthLabel = isAllMonths
+    ? "すべての月"
+    : (() => {
+        const [, m] = monthKey.split("-").map(Number);
+        return `${m}月度`;
+      })();
+
+  function linkWith(overrides: Record<string, string>): string {
+    const sp = new URLSearchParams();
+    sp.set("filter", filter);
+    sp.set("month", monthKey);
+    for (const [k, v] of Object.entries(overrides)) sp.set(k, v);
+    return `/admin/time-off?${sp.toString()}`;
+  }
 
   return (
     <AppShell>
@@ -147,7 +199,7 @@ export default async function AdminTimeOffPage({
           管理者メニュー
         </Link>
 
-        <header className="mb-6 mt-4">
+        <header className="mb-5 mt-4 px-3">
           <p className="text-[11px] font-medium uppercase tracking-[0.15em] text-[color:var(--accent)]">
             Time off · Admin
           </p>
@@ -155,30 +207,69 @@ export default async function AdminTimeOffPage({
             希望休の承認
           </h1>
           <p className="mt-1.5 text-[13px] text-[color:var(--ink-3)]">
-            スタッフから申請された希望休を確認します
+            スタッフから申請された希望休を月ごとに確認します
           </p>
         </header>
 
-        {/* 未提出スタッフ */}
-        <UnsubmittedStaffList
-          staffs={
-            unsubmitted as unknown as {
-              id: string;
-              display_name: string;
-              warehouses: { name: string } | null;
-            }[]
-          }
-          monthLabel={`${cycle.cycleMonth}月度`}
-        />
+        {/* 月切替 */}
+        <div className="mx-3 mb-3 flex items-center justify-between rounded-2xl bg-[color:var(--surface)] px-2 py-1 shadow-[var(--shadow-sm)]">
+          <Link
+            href={linkWith({ month: prevMonth })}
+            className="rounded-full px-3 py-2 text-[12px] font-medium text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
+          >
+            ← 前月
+          </Link>
+          <p className="text-[14px] font-semibold tabular-nums text-[color:var(--ink)]">
+            {monthLabel}
+          </p>
+          <Link
+            href={linkWith({ month: nextMonthStr })}
+            className="rounded-full px-3 py-2 text-[12px] font-medium text-[color:var(--ink-2)] active:bg-[color:var(--bg)]"
+          >
+            翌月 →
+          </Link>
+        </div>
+
+        {/* 月のショートカット */}
+        <div className="mx-3 mb-4 flex flex-wrap gap-1">
+          <Link
+            href={linkWith({ month: cycleKey })}
+            className={`rounded-full px-3 py-1.5 text-[11px] font-medium ${
+              monthKey === cycleKey
+                ? "bg-[color:var(--accent)] text-white"
+                : "bg-[color:var(--surface)] text-[color:var(--ink-3)] shadow-[var(--shadow-sm)]"
+            }`}
+          >
+            次サイクル（{cycle.cycleMonth}月度）
+          </Link>
+          <Link
+            href={linkWith({ month: "all" })}
+            className={`rounded-full px-3 py-1.5 text-[11px] font-medium ${
+              isAllMonths
+                ? "bg-[color:var(--accent)] text-white"
+                : "bg-[color:var(--surface)] text-[color:var(--ink-3)] shadow-[var(--shadow-sm)]"
+            }`}
+          >
+            すべての月
+          </Link>
+        </div>
+
+        {/* 未提出スタッフ（次サイクルを表示中のみ） */}
+        {showUnsubmitted && (
+          <UnsubmittedStaffList
+            staffs={unsubmitted}
+            monthLabel={`${cycle.cycleMonth}月度`}
+          />
+        )}
 
         {/* タブ */}
-        <div className="mb-4 flex gap-1 overflow-x-auto rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
+        <div className="mx-3 mb-4 flex gap-1 overflow-x-auto rounded-full bg-[color:var(--surface)] p-1 shadow-[var(--shadow-sm)]">
           {tabs.map((tab) => {
             const active = filter === tab.key;
             return (
               <Link
                 key={tab.key}
-                href={`/admin/time-off?filter=${tab.key}`}
+                href={linkWith({ filter: tab.key })}
                 className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[12px] font-medium transition-colors ${
                   active
                     ? "bg-[color:var(--accent)] text-white"
@@ -193,13 +284,15 @@ export default async function AdminTimeOffPage({
 
         {/* 申請中タブ時：一括承認ボタン */}
         {filter === "pending" && (
-          <ApproveAllButton count={pendingCount ?? 0} />
+          <div className="mx-3">
+            <ApproveAllButton count={pendingCount ?? 0} />
+          </div>
         )}
 
         {(!requests || requests.length === 0) && (
-          <div className="rounded-3xl bg-[color:var(--surface)] p-10 text-center shadow-[var(--shadow-sm)]">
+          <div className="mx-3 rounded-3xl bg-[color:var(--surface)] p-10 text-center shadow-[var(--shadow-sm)]">
             <p className="text-[14px] font-medium text-[color:var(--ink-2)]">
-              申請はありません
+              この月の{filter === "all" ? "" : "対象の"}申請はありません
             </p>
             <p className="mt-1 text-[12px] text-[color:var(--ink-3)]">
               {filter === "pending"
@@ -209,7 +302,7 @@ export default async function AdminTimeOffPage({
           </div>
         )}
 
-        <div className="space-y-2.5">
+        <div className="mx-3 space-y-2.5">
           {requests.map((req) => (
             <RequestItem key={req.id} request={req} />
           ))}
