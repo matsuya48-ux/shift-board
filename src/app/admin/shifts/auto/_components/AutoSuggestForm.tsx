@@ -63,14 +63,12 @@ export function AutoSuggestForm({
 
   useEffect(() => {
     if (!pendingNav) return;
+    // 下書きシフトはボードでのみ確認可能なので、複数倉庫でも先頭にジャンプ
+    // （ボード上の拠点タブで切り替えられる）
     const t = setTimeout(() => {
-      if (pendingNav.warehouseIds.length === 1) {
-        router.push(
-          `/admin/shifts/board?warehouse=${pendingNav.warehouseIds[0]}&month=${pendingNav.month}`,
-        );
-      } else {
-        router.push(`/shifts/all?view=month&month=${pendingNav.month}`);
-      }
+      router.push(
+        `/admin/shifts/board?warehouse=${pendingNav.warehouseIds[0]}&month=${pendingNav.month}`,
+      );
     }, 2000);
     return () => clearTimeout(t);
   }, [pendingNav, router]);
@@ -212,26 +210,25 @@ export function AutoSuggestForm({
 
           {/* 確認画面へ移動ボタン（自動で 2 秒後にも遷移） */}
           {pendingNav && (
-            <button
-              type="button"
-              onClick={() => {
-                if (pendingNav.warehouseIds.length === 1) {
+            <>
+              <button
+                type="button"
+                onClick={() => {
                   router.push(
                     `/admin/shifts/board?warehouse=${pendingNav.warehouseIds[0]}&month=${pendingNav.month}`,
                   );
-                } else {
-                  router.push(
-                    `/shifts/all?view=month&month=${pendingNav.month}`,
-                  );
-                }
-              }}
-              className="mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[14px] font-medium text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.98]"
-            >
-              {pendingNav.warehouseIds.length === 1
-                ? "ボードで確認する"
-                : "全員のシフトで確認する"}
-              <ArrowRight className="h-4 w-4" strokeWidth={2} />
-            </button>
+                }}
+                className="mb-2 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--ink)] text-[14px] font-medium text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.98]"
+              >
+                ボードで確認する
+                <ArrowRight className="h-4 w-4" strokeWidth={2} />
+              </button>
+              {pendingNav.warehouseIds.length > 1 && (
+                <p className="mb-4 text-center text-[10px] text-[color:var(--ink-3)]">
+                  ※ ボード画面の拠点タブで他の倉庫にも切り替えられます
+                </p>
+              )}
+            </>
           )}
 
           <div className="overflow-hidden rounded-2xl border border-[color:var(--line)]">
@@ -278,9 +275,7 @@ export function AutoSuggestForm({
           <p className="mt-4 text-center text-[11px] text-[color:var(--ink-3)]">
             ※ 作成したシフトは下書きです。
             {pendingNav
-              ? pendingNav.warehouseIds.length === 1
-                ? "まもなくボードに移動して内容を確認します…"
-                : "まもなく全員のシフトに移動します…"
+              ? "まもなくボードに移動して内容を確認します…"
               : "内容を確認後、スタッフ別の画面から公開してください"}
           </p>
         </div>
