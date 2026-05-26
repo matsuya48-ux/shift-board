@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/AppShell";
 import { ArrowLeft } from "lucide-react";
-import { RequestItem } from "./_components/RequestItem";
+import { StaffRequestGroup } from "./_components/StaffRequestGroup";
 import { ApproveAllButton } from "./_components/ApproveAllButton";
 import { UnsubmittedStaffList } from "./_components/UnsubmittedStaffList";
 import {
@@ -302,11 +302,54 @@ export default async function AdminTimeOffPage({
           </div>
         )}
 
-        <div className="mx-3 space-y-2.5">
-          {requests.map((req) => (
-            <RequestItem key={req.id} request={req} />
-          ))}
-        </div>
+        {/* スタッフ単位でグループ化 */}
+        {requests.length > 0 && (() => {
+          type StaffGroup = {
+            staff_id: string;
+            staffName: string;
+            warehouseName: string | null;
+            firstDate: string;
+            requests: typeof requests;
+          };
+          const groupMap = new Map<string, StaffGroup>();
+          requests.forEach((r) => {
+            // staff_id がselectに含まれていないため、display_nameでグルーピング
+            const key = r.staffs?.display_name ?? "(不明)";
+            const g = groupMap.get(key) ?? {
+              staff_id: key,
+              staffName: r.staffs?.display_name ?? "(不明)",
+              warehouseName: r.staffs?.warehouses?.name ?? null,
+              firstDate: r.request_date,
+              requests: [],
+            };
+            g.requests.push(r);
+            if (r.request_date < g.firstDate) g.firstDate = r.request_date;
+            groupMap.set(key, g);
+          });
+          const groups = [...groupMap.values()].sort((a, b) =>
+            a.firstDate.localeCompare(b.firstDate),
+          );
+          return (
+            <div className="mx-3 space-y-2.5">
+              {groups.map((g) => (
+                <StaffRequestGroup
+                  key={g.staff_id}
+                  staffName={g.staffName}
+                  warehouseName={g.warehouseName}
+                  requests={g.requests.map((r) => ({
+                    id: r.id,
+                    request_date: r.request_date,
+                    status: r.status,
+                    admin_note: r.admin_note,
+                    decided_at: r.decided_at,
+                    decided_by: r.decided_by,
+                    decider_name: r.decider_name,
+                  }))}
+                />
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </AppShell>
   );
