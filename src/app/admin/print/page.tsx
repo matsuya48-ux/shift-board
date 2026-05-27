@@ -32,6 +32,7 @@ type Warehouse = {
 type Staff = {
   id: string;
   display_name: string;
+  employee_code: string | null;
   warehouse_id: string;
   weekly_hour_limit: number | null;
 };
@@ -131,7 +132,16 @@ export default async function PrintPage({
   const patterns = (patternsRaw ?? []) as PatternRow[];
   const patternMap = new Map(patterns.map((p) => [p.id, p]));
   const shifts = (shiftsRaw ?? []) as ShiftRow[];
-  const staffs = (staffsRaw ?? []) as Staff[];
+  // 社員コードを数値として昇順ソート
+  const staffs = ((staffsRaw ?? []) as Staff[]).slice().sort((a, b) => {
+    const aCode = a.employee_code ?? "";
+    const bCode = b.employee_code ?? "";
+    if (aCode && bCode)
+      return aCode.localeCompare(bCode, "ja", { numeric: true });
+    if (aCode) return -1;
+    if (bCode) return 1;
+    return a.display_name.localeCompare(b.display_name, "ja");
+  });
   const weekdayLabels = (weekdayLabelsRaw ?? []) as WeekdayLabel[];
   const events = (eventsRaw ?? []) as WarehouseEvent[];
   const timeOffs = (timeOffsRaw ?? []) as TimeOffRow[];

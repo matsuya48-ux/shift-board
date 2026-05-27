@@ -38,14 +38,26 @@ export default async function AdminShiftsPage({
   if (params.warehouse) query = query.eq("warehouse_id", params.warehouse);
 
   const { data: staffsRaw } = await query;
-  const staffs = (staffsRaw ?? []) as unknown as {
+  // 社員コードを数値として昇順ソート
+  const staffs = ((staffsRaw ?? []) as unknown as {
     id: string;
     display_name: string;
+    employee_code: string | null;
     weekly_hour_limit: number | null;
     employment_type: string;
     warehouse_id: string;
     warehouses: { name: string } | null;
-  }[];
+  }[])
+    .slice()
+    .sort((a, b) => {
+      const aCode = a.employee_code ?? "";
+      const bCode = b.employee_code ?? "";
+      if (aCode && bCode)
+        return aCode.localeCompare(bCode, "ja", { numeric: true });
+      if (aCode) return -1;
+      if (bCode) return 1;
+      return a.display_name.localeCompare(b.display_name, "ja");
+    });
 
   return (
     <AppShell>

@@ -24,6 +24,7 @@ type Warehouse = {
 type Staff = {
   id: string;
   display_name: string;
+  employee_code: string | null;
   warehouse_id: string;
   preferred_start_time: string | null;
   preferred_end_time: string | null;
@@ -116,6 +117,17 @@ export default async function ShiftBoardPage({
     | Warehouse
     | undefined;
 
+  // 社員コードを数値として昇順ソート（DBの text 型ソートだと "1029" < "799" になるため）
+  const staffsSorted = ((staffsRaw ?? []) as Staff[]).slice().sort((a, b) => {
+    const aCode = a.employee_code ?? "";
+    const bCode = b.employee_code ?? "";
+    if (aCode && bCode)
+      return aCode.localeCompare(bCode, "ja", { numeric: true });
+    if (aCode) return -1;
+    if (bCode) return 1;
+    return a.display_name.localeCompare(b.display_name, "ja");
+  });
+
   return (
     <AppShell>
       <div
@@ -170,7 +182,7 @@ export default async function ShiftBoardPage({
         {warehouse && (
           <ShiftBoard
             warehouse={warehouse}
-            staffs={(staffsRaw ?? []) as Staff[]}
+            staffs={staffsSorted}
             shifts={(shiftsRaw ?? []) as ShiftRow[]}
             patterns={(patternsRaw ?? []) as PatternRow[]}
             weekdayLabels={(weekdayLabelsRaw ?? []) as WeekdayLabel[]}

@@ -58,9 +58,22 @@ export default async function AdminStaffsPage({
   }
 
   const { data: staffsRaw } = await query;
-  const staffs = (staffsRaw ?? []) as unknown as (Staff & {
+  // 社員コードを数値として昇順ソート（DBのtext型ソートだと "1029" < "799" になるため）
+  const staffs = ((staffsRaw ?? []) as unknown as (Staff & {
     warehouse_id: string;
-  })[];
+  })[])
+    .slice()
+    .sort((a, b) => {
+      // is_active 降順を維持
+      if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
+      const aCode = a.employee_code ?? "";
+      const bCode = b.employee_code ?? "";
+      if (aCode && bCode)
+        return aCode.localeCompare(bCode, "ja", { numeric: true });
+      if (aCode) return -1;
+      if (bCode) return 1;
+      return a.display_name.localeCompare(b.display_name, "ja");
+    });
 
   // カウント用クエリ（拠点フィルタを反映）
   let totalQ = supabase
