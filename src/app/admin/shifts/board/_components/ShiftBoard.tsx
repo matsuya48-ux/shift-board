@@ -3,7 +3,14 @@
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  X,
+  CheckCheck,
+  RotateCcw,
+} from "lucide-react";
 import {
   toISODate,
   shiftHours,
@@ -19,7 +26,13 @@ import {
   type DateLabelOverride,
 } from "@/lib/labels";
 import { isHoliday, holidayName } from "@/lib/holidays";
-import { upsertShift, deleteShift, moveShift } from "../../actions";
+import {
+  upsertShift,
+  deleteShift,
+  moveShift,
+  publishDrafts,
+  unpublishShifts,
+} from "../../actions";
 
 const WEEKDAYS_SHORT = ["日", "月", "火", "水", "木", "金", "土"];
 
@@ -83,6 +96,13 @@ export function ShiftBoard({
   const [, startMoveTransition] = useTransition();
   const [moveError, setMoveError] = useState<string | null>(null);
 
+  // 一括公開 / 下書きに戻す
+  const [isPublishPending, startPublishTransition] = useTransition();
+  const [publishMessage, setPublishMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
   function handleDragStart(
     e: React.DragEvent,
     shiftId: string,
@@ -143,6 +163,68 @@ export function ShiftBoard({
     });
   }
 
+  function handlePublishAll() {
+    if (draftCount === 0) return;
+    if (
+      !confirm(
+        `${warehouse.name}の ${year}年${mon}月 の下書き ${draftCount} 件を公開します。\nスタッフのカレンダーにも表示されるようになります。よろしいですか？`,
+      )
+    ) {
+      return;
+    }
+    setPublishMessage(null);
+    startPublishTransition(async () => {
+      const r = await publishDrafts({
+        warehouseId: warehouse.id,
+        month,
+      });
+      if (r.ok) {
+        setPublishMessage({
+          type: "success",
+          text: `${r.published ?? 0}件のシフトを公開しました`,
+        });
+        router.refresh();
+      } else {
+        setPublishMessage({
+          type: "error",
+          text: r.message ?? "公開に失敗しました",
+        });
+      }
+      setTimeout(() => setPublishMessage(null), 4000);
+    });
+  }
+
+  function handleUnpublishAll() {
+    if (publishedCount === 0) return;
+    if (
+      !confirm(
+        `${warehouse.name}の ${year}年${mon}月 の公開済みシフト ${publishedCount} 件を下書きに戻します。\nスタッフのカレンダーから一時的に消えます。よろしいですか？`,
+      )
+    ) {
+      return;
+    }
+    setPublishMessage(null);
+    startPublishTransition(async () => {
+      const r = await unpublishShifts({
+        warehouseId: warehouse.id,
+        month,
+      });
+      if (r.ok) {
+        setPublishMessage({
+          type: "success",
+          text: `${r.reverted ?? 0}件を下書きに戻しました`,
+        });
+        router.refresh();
+      } else {
+        setPublishMessage({
+          type: "error",
+          text: r.message ?? "失敗しました",
+        });
+      }
+      setTimeout(() => setPublishMessage(null), 4000);
+    });
+  }
+
   const [year, mon] = month.split("-").map(Number);
   const firstDay = new Date(year, mon - 1, 1);
   const lastDay = new Date(year, mon, 0);
@@ -200,6 +282,14 @@ export function ShiftBoard({
   const todayStr = toISODate(new Date());
   const target = warehouse.target_staff_per_weekday ?? null;
 
+  // 下書き / 公開済み件数（予備は除外）
+  const draftCount = shifts.filter(
+    (s) => !s.is_published && !s.is_tentative,
+  ).length;
+  const publishedCount = shifts.filter(
+    (s) => s.is_published && !s.is_tentative,
+  ).length;
+
   function prevMonthUrl() {
     const d = new Date(year, mon - 2, 1);
     const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -237,9 +327,62 @@ export function ShiftBoard({
         </Link>
       </div>
 
+      {/* 公開状況 + 一括公開 */}
+      <div className="mb-3 rounded-2xl bg-[color:var(--surface)] p-3 shadow-[var(--shadow-sm)]">
+        <div className="mb-2 flex items-baseline gap-2">
+          <p className="text-[12px] font-semibold text-[color:var(--ink-2)]">
+            公開状況
+          </p>
+          <p className="text-[11px] tabular-nums text-[color:var(--ink-3)]">
+            下書き {draftCount} 件 ／ 公開済み {publishedCount} 件
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handlePublishAll}
+            disabled={isPublishPending || draftCount === 0}
+            className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-[color:var(--accent)] text-[12px] font-medium text-white shadow-[0_4px_14px_-4px_rgba(45,85,69,0.4)] transition-transform active:scale-95 disabled:bg-[color:var(--ink-4)] disabled:shadow-none"
+          >
+            {isPublishPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.2} />
+            )}
+            {draftCount > 0
+              ? `${draftCount}件まとめて公開`
+              : "下書きなし"}
+          </button>
+          {publishedCount > 0 && (
+            <button
+              type="button"
+              onClick={handleUnpublishAll}
+              disabled={isPublishPending}
+              className="flex h-10 items-center justify-center gap-1.5 rounded-full border border-[color:var(--line)] bg-white px-3 text-[11px] font-medium text-[color:var(--ink-3)] active:scale-95 disabled:opacity-50"
+              title="公開済みを下書きに戻す（修正用）"
+            >
+              <RotateCcw className="h-3 w-3" strokeWidth={2} />
+              下書きに戻す
+            </button>
+          )}
+        </div>
+        {publishMessage && (
+          <p
+            className={`mt-2 rounded-xl px-2.5 py-1.5 text-[11px] ${
+              publishMessage.type === "success"
+                ? "bg-[color:var(--accent-soft)] text-[color:var(--accent)]"
+                : "bg-red-50 text-[color:var(--danger)]"
+            }`}
+          >
+            {publishMessage.text}
+          </p>
+        )}
+      </div>
+
       {/* 操作ヒント */}
       <p className="mb-3 px-2 text-[11px] leading-relaxed text-[color:var(--ink-3)]">
-        💡 シフトのセルをタップで編集／<b>ドラッグ&ドロップで別の日や別のスタッフに移動</b>できます（PC・タブレット）
+        💡 シフトのセルをタップで編集／<b>ドラッグ&ドロップで別の日や別のスタッフに移動</b>できます（PC・タブレット）。
+        編集が終わったら<b>「まとめて公開」</b>でスタッフに反映。
       </p>
 
       {/* 移動エラー */}

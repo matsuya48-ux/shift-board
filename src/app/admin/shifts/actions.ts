@@ -89,6 +89,86 @@ export async function deleteShift(id: string) {
 }
 
 /**
+ * 指定月・指定倉庫の下書きシフトを一括で公開する。
+ * 予備(△)シフトは対象外。
+ */
+export async function publishDrafts(payload: {
+  warehouseId: string;
+  month: string; // YYYY-MM
+}): Promise<{ ok: boolean; published?: number; message?: string }> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  if (!/^\d{4}-\d{2}$/.test(payload.month)) {
+    return { ok: false, message: "月の指定が不正です" };
+  }
+  if (!payload.warehouseId) {
+    return { ok: false, message: "倉庫を指定してください" };
+  }
+
+  const [yearStr, monStr] = payload.month.split("-");
+  const start = `${payload.month}-01`;
+  const lastDay = new Date(Number(yearStr), Number(monStr), 0).getDate();
+  const end = `${payload.month}-${String(lastDay).padStart(2, "0")}`;
+
+  const { error, count } = await supabase
+    .from("shifts")
+    .update({ is_published: true }, { count: "exact" })
+    .eq("warehouse_id", payload.warehouseId)
+    .eq("is_published", false)
+    .eq("is_tentative", false)
+    .gte("work_date", start)
+    .lte("work_date", end);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/shifts");
+  revalidatePath("/admin/shifts/board");
+  revalidatePath("/shifts/all");
+  revalidatePath("/shifts/me");
+  revalidatePath("/dashboard");
+  return { ok: true, published: count ?? 0 };
+}
+
+/**
+ * 指定月・指定倉庫の公開済みシフトを一括で下書きに戻す。
+ * 修正したい時用。
+ */
+export async function unpublishShifts(payload: {
+  warehouseId: string;
+  month: string;
+}): Promise<{ ok: boolean; reverted?: number; message?: string }> {
+  await requireAdmin();
+  const supabase = createAdminClient();
+
+  if (!/^\d{4}-\d{2}$/.test(payload.month) || !payload.warehouseId) {
+    return { ok: false, message: "指定が不正です" };
+  }
+
+  const [yearStr, monStr] = payload.month.split("-");
+  const start = `${payload.month}-01`;
+  const lastDay = new Date(Number(yearStr), Number(monStr), 0).getDate();
+  const end = `${payload.month}-${String(lastDay).padStart(2, "0")}`;
+
+  const { error, count } = await supabase
+    .from("shifts")
+    .update({ is_published: false }, { count: "exact" })
+    .eq("warehouse_id", payload.warehouseId)
+    .eq("is_published", true)
+    .gte("work_date", start)
+    .lte("work_date", end);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/shifts");
+  revalidatePath("/admin/shifts/board");
+  revalidatePath("/shifts/all");
+  revalidatePath("/shifts/me");
+  revalidatePath("/dashboard");
+  return { ok: true, reverted: count ?? 0 };
+}
+
+/**
  * シフトを別のスタッフ・別の日付に移動する（ドラッグ&ドロップ用）
  * - 移動先に既存シフト or 予備(△)があれば失敗
  * - 承認済み希望休がある日への移動は警告（フロントで判断）
