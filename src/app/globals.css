@@ -4,6 +4,8 @@
   html {
     font-size: 16px;
     line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 }
 
@@ -110,7 +112,8 @@ p, label, span, a {
 /* 等幅数字 */
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
-/* アプリ風スクロール */
+/* アプリ風スクロール: スクロールバー非表示 (Chrome + Firefox) */
+* { scrollbar-width: none; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 
 /* 日付ピッカー */
