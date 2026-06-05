@@ -10,36 +10,35 @@
 }
 
 :root {
-  /* モノクロベース：白・黒・グレー */
-  --bg: #f4f4f4;                  /* ライトグレー背景 */
-  --surface: #ffffff;             /* カード等の白面 */
-  --surface-soft: #fafafa;
+  /* 温かいオフホワイト + ディープフォレスト */
+  --bg: #f7f4ee;              /* 温かみのあるオフホワイト */
+  --surface: #ffffff;
+  --surface-soft: #fbfaf5;
 
-  --ink: #111111;                 /* ほぼ黒（本文） */
-  --ink-2: #444444;               /* セカンダリ */
-  --ink-3: #777777;               /* キャプション */
-  --ink-4: #b0b0b0;               /* 弱 */
+  --ink: #1a1713;              /* 深い墨 */
+  --ink-2: #4b4540;            /* セカンダリ */
+  --ink-3: #807970;            /* キャプション */
+  --ink-4: #b8b0a4;            /* 弱 */
 
-  --line: #e5e5e5;
-  --line-soft: #efefef;
-  --line-strong: #c8c8c8;
-  --off-day: #ececec;             /* 土日・祝日の背景 */
-  --off-day-strong: #d8d8d8;
+  --line: #ece7dc;
+  --line-soft: #f3efe6;
+  --line-strong: #c9c0ad;         /* グリッドをはっきり見せる用 */
+  --off-day: #e6e0d0;             /* 土日・祝日の背景 */
+  --off-day-strong: #ddd5c0;
 
-  --accent: #1a1a1a;              /* プライマリは黒（旧緑からスイッチ） */
-  --accent-hover: #000000;
-  --accent-soft: #ececec;         /* アクセント soft = 明るいグレー */
+  --accent: #2d5545;           /* ディープフォレスト */
+  --accent-hover: #1f3e31;
+  --accent-soft: #e6ede9;
   --accent-text: #ffffff;
 
-  /* ステータス系：モノクロベースで僅かに彩度を残す */
-  --success: #2f2f2f;             /* ほぼ黒 */
-  --warning: #6a6a6a;             /* グレー（注意） */
-  --danger: #8a3a3a;              /* ミュートされた赤（致命的エラーだけ色味を残す） */
+  --success: #4b7a59;
+  --warning: #a67234;
+  --danger: #9a3e3a;
 
   /* シャドウ */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 2px rgba(26, 23, 19, 0.04);
+  --shadow-md: 0 4px 16px -4px rgba(26, 23, 19, 0.08);
+  --shadow-lg: 0 10px 40px -10px rgba(26, 23, 19, 0.15);
 }
 
 @theme inline {

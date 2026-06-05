@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "希望休とシフトを、軽やかに。",
     start_url: "/dashboard",
     display: "standalone",
-    background_color: "#f4f4f4",
-    theme_color: "#1a1a1a",
+    background_color: "#f7f4ee",
+    theme_color: "#2d5545",
     orientation: "portrait",
     icons: [
       {
