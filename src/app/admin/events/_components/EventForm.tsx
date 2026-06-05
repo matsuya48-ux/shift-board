@@ -125,7 +125,7 @@ export function EventForm({ warehouses }: { warehouses: Warehouse[] }) {
       <button
         type="submit"
         disabled={isPending}
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] text-[14px] font-medium text-white shadow-[0_8px_20px_-6px_rgba(45,85,69,0.4)] transition-transform active:scale-[0.98] disabled:opacity-50"
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] text-[14px] font-medium text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.4)] transition-transform active:scale-[0.98] disabled:opacity-50"
       >
         {isPending ? (
           <Loader2 className="h-4 w-4 animate-spin" />

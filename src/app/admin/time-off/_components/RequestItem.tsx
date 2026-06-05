@@ -158,7 +158,7 @@ export function RequestItem({ request: req }: { request: Req }) {
                   type="button"
                   onClick={() => run(approveTimeOff)}
                   disabled={isPending}
-                  className="flex h-10 flex-[2] items-center justify-center gap-1.5 rounded-full bg-[color:var(--accent)] text-[12px] font-medium text-white shadow-[0_4px_14px_-4px_rgba(45,85,69,0.4)] transition-transform active:scale-[0.98] disabled:opacity-50"
+                  className="flex h-10 flex-[2] items-center justify-center gap-1.5 rounded-full bg-[color:var(--accent)] text-[12px] font-medium text-white shadow-[0_4px_14px_-4px_rgba(0,0,0,0.4)] transition-transform active:scale-[0.98] disabled:opacity-50"
                 >
                   {isPending ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />

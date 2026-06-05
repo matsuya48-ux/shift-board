@@ -180,7 +180,7 @@ export default async function AdminStaffsPage({
         {/* 新規登録 */}
         <Link
           href="/admin/staffs/new"
-          className="mb-4 flex items-center justify-center gap-1.5 rounded-full bg-[color:var(--ink)] py-3 text-[13px] font-medium text-white shadow-[0_6px_18px_-6px_rgba(26,23,19,0.3)] transition-transform active:scale-[0.98]"
+          className="mb-4 flex items-center justify-center gap-1.5 rounded-full bg-[color:var(--ink)] py-3 text-[13px] font-medium text-white shadow-[0_6px_18px_-6px_rgba(0,0,0,0.3)] transition-transform active:scale-[0.98]"
         >
           ＋ スタッフを新規登録
         </Link>

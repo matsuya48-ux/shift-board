@@ -196,7 +196,7 @@ function PrimaryMenuCard({
       href={href}
       className={`flex items-center gap-4 rounded-2xl p-5 shadow-[var(--shadow-sm)] transition-transform active:scale-[0.98] ${
         accent
-          ? "bg-gradient-to-br from-[color:var(--accent)] to-[#1f3e31] text-white shadow-[var(--shadow-md)]"
+          ? "bg-gradient-to-br from-[color:var(--accent)] to-black text-white shadow-[var(--shadow-md)]"
           : "bg-[color:var(--surface)] text-[color:var(--ink)]"
       }`}
     >

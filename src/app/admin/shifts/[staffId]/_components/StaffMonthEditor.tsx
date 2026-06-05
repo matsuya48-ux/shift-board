@@ -492,7 +492,7 @@ function EditModal({
             <button
               type="submit"
               disabled={isPending}
-              className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-[color:var(--accent)] text-[13px] font-medium text-white shadow-[0_6px_18px_-6px_rgba(45,85,69,0.4)] transition-transform active:scale-[0.98] disabled:opacity-50"
+              className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full bg-[color:var(--accent)] text-[13px] font-medium text-white shadow-[0_6px_18px_-6px_rgba(0,0,0,0.4)] transition-transform active:scale-[0.98] disabled:opacity-50"
             >
               {isPending && (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />

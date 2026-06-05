@@ -36,7 +36,7 @@ export function BrandLogo({
   return (
     <div className={`flex items-center ${gap}`}>
       <div
-        className={`${markSize} flex flex-shrink-0 items-center justify-center rounded-[8px] ${markBg} ${markFg} shadow-[0_3px_10px_-4px_rgba(26,23,19,0.25)]`}
+        className={`${markSize} flex flex-shrink-0 items-center justify-center rounded-[8px] ${markBg} ${markFg} shadow-[0_3px_10px_-4px_rgba(0,0,0,0.25)]`}
       >
         <span
           className={`${markText} font-black tracking-[-0.05em] leading-none`}

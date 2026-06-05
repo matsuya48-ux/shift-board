@@ -283,7 +283,7 @@ export default async function DashboardPage() {
         {/* 希望休申請カード */}
         <Link
           href="/time-off"
-          className="relative mb-5 block overflow-hidden rounded-2xl bg-gradient-to-br from-[color:var(--accent)] to-[#1f3e31] p-4 text-white shadow-[var(--shadow-md)] animate-rise active:scale-[0.99]"
+          className="relative mb-5 block overflow-hidden rounded-2xl bg-gradient-to-br from-[color:var(--accent)] to-black p-4 text-white shadow-[var(--shadow-md)] animate-rise active:scale-[0.99]"
         >
           <div className="flex items-center gap-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur">

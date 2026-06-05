@@ -33,7 +33,7 @@ export default async function AdminGatePage() {
       <div className="flex flex-1 flex-col justify-center">
         <div className="mx-auto w-full max-w-sm animate-rise">
           <div className="mb-7 text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--accent)] shadow-[0_10px_30px_-10px_rgba(45,85,69,0.5)]">
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--accent)] shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]">
               <KeyRound
                 className="h-6 w-6 text-white"
                 strokeWidth={1.8}

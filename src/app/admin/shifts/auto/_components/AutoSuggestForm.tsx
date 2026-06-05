@@ -169,7 +169,7 @@ export function AutoSuggestForm({
         <button
           type="submit"
           disabled={isPending || selectedWarehouses.size === 0}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] text-[14px] font-medium text-white shadow-[0_8px_20px_-6px_rgba(45,85,69,0.4)] transition-transform active:scale-[0.98] disabled:bg-[color:var(--ink-4)] disabled:shadow-none"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--accent)] text-[14px] font-medium text-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.4)] transition-transform active:scale-[0.98] disabled:bg-[color:var(--ink-4)] disabled:shadow-none"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />

@@ -87,7 +87,7 @@ export default async function AdminShiftsPage({
         {/* 自動提案 */}
         <Link
           href="/admin/shifts/auto"
-          className="mb-3 flex items-center gap-3.5 rounded-2xl bg-gradient-to-br from-[color:var(--accent)] to-[#1f3e31] p-4 text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.99]"
+          className="mb-3 flex items-center gap-3.5 rounded-2xl bg-gradient-to-br from-[color:var(--accent)] to-black p-4 text-white shadow-[var(--shadow-md)] transition-transform active:scale-[0.99]"
         >
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
             <Sparkles className="h-[18px] w-[18px]" strokeWidth={1.8} />
